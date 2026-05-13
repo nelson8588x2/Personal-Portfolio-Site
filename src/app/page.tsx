@@ -760,14 +760,24 @@ export default function Home() {
                         {project.videos.map((video) => (
                           <div key={video.id} className="space-y-3">
                             <div className="glass rounded-2xl overflow-hidden aspect-video">
-                              <video
-                                src={video.src}
-                                controls
-                                className="w-full h-full object-cover"
-                                preload="metadata"
-                              >
-                                Your browser does not support the video tag.
-                              </video>
+                              {video.src.includes("youtube.com") || video.src.includes("youtu.be") ? (
+                                <iframe
+                                  src={video.src.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/").split("&")[0]}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  title={video.caption || "Video"}
+                                />
+                              ) : (
+                                <video
+                                  src={video.src}
+                                  controls
+                                  className="w-full h-full object-cover"
+                                  preload="metadata"
+                                >
+                                  Your browser does not support the video tag.
+                                </video>
+                              )}
                             </div>
                             {/* Video Caption */}
                             {video.caption && (

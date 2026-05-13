@@ -20,6 +20,7 @@ import {
   BookOpen,
   Upload,
   Palette,
+  Rocket,
 } from "lucide-react";
 
 // ============ Type Definitions ============
@@ -141,6 +142,8 @@ export default function AdminPage() {
   const [portfolioDrag, setPortfolioDrag] = useState<{ from: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deploying, setDeploying] = useState(false);
+  const [deployMsg, setDeployMsg] = useState("");
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [videoPickerFor, setVideoPickerFor] = useState<string | null>(null);
   const [imagePickerFor, setImagePickerFor] = useState<string | null>(null);
@@ -195,6 +198,23 @@ export default function AdminPage() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  // 儲存後部署（git add + commit + push → 觸發 Render 自動重建）
+  const deploySite = async () => {
+    // 先儲存
+    await saveConfig();
+    setDeploying(true);
+    setDeployMsg("");
+    try {
+      const res = await fetch("/api/deploy", { method: "POST" });
+      const data = await res.json();
+      setDeployMsg(data.message);
+    } catch {
+      setDeployMsg("部署失敗：無法連線到伺服器");
+    }
+    setDeploying(false);
+    setTimeout(() => setDeployMsg(""), 5000);
   };
 
   // Add project
@@ -660,7 +680,27 @@ export default function AdminPage() {
                 </>
               )}
             </button>
+            <button
+              onClick={deploySite}
+              disabled={deploying}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition-colors disabled:opacity-50 font-medium"
+            >
+              {deploying ? (
+                <>
+                  <Rocket className="w-4 h-4 animate-pulse" /> Deploying...
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-4 h-4" /> Deploy
+                </>
+              )}
+            </button>
           </div>
+          {deployMsg && (
+            <div className={`max-w-5xl mx-auto px-6 py-2 text-sm ${deployMsg.includes("失敗") ? "text-red-600" : "text-emerald-600"}`}>
+              {deployMsg}
+            </div>
+          )}
         </div>
       </header>
 
@@ -1510,21 +1550,43 @@ export default function AdminPage() {
                             className="w-32 h-20 shrink-0 bg-black/30 rounded-lg overflow-hidden cursor-pointer relative group/thumb"
                             onClick={() => setPreviewVideo(video.src)}
                           >
-                            <video
-                              src={video.src}
-                              className="w-full h-full object-cover"
-                              preload="metadata"
-                              muted
-                            />
+                            {video.src.includes("youtube.com") || video.src.includes("youtu.be") ? (
+                              <img
+                                src={`https://img.youtube.com/vi/${video.src.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/mqdefault.jpg`}
+                                alt="YouTube thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <video
+                                src={video.src}
+                                className="w-full h-full object-cover"
+                                preload="metadata"
+                                muted
+                              />
+                            )}
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
                               <Play className="w-6 h-6 text-white" />
                             </div>
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-500 truncate mb-1">
-                              {video.src.split("/").pop()}
-                            </p>
+                            <input
+                              type="text"
+                              value={video.src}
+                              onChange={(e) => {
+                                const newVideos = project.videos.map((v) =>
+                                  v.id === video.id ? { ...v, src: e.target.value } : v
+                                );
+                                setConfig((prev) => ({
+                                  ...prev,
+                                  projects: prev.projects.map((p) =>
+                                    p.id === project.id ? { ...p, videos: newVideos } : p
+                                  ),
+                                }));
+                              }}
+                              className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs text-gray-600 outline-none focus:ring-1 focus:ring-gray-400 mb-1"
+                              placeholder="YouTube URL 或本地路徑 /videos/xxx.mp4"
+                            />
                             <textarea
                               value={video.caption}
                               onChange={(e) =>
@@ -1547,63 +1609,22 @@ export default function AdminPage() {
                       ))}
                     </div>
 
-                    {/* Add Video Button */}
+                    {/* 新增影片按鈕 — 直接加一個空白影片項目，使用者在 URL 欄位貼上 YouTube 連結 */}
                     <button
-                      onClick={() =>
-                        setVideoPickerFor(
-                          videoPickerFor === project.id ? null : project.id
-                        )
-                      }
+                      onClick={() => {
+                        const newVideo = { id: `video-${Date.now()}`, src: "", caption: "" };
+                        setConfig((prev) => ({
+                          ...prev,
+                          projects: prev.projects.map((p) =>
+                            p.id === project.id ? { ...p, videos: [...p.videos, newVideo] } : p
+                          ),
+                        }));
+                      }}
                       className="mt-3 flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg bg-gray-50 border border-dashed border-gray-300 hover:bg-gray-100 hover:border-gray-400 transition-colors text-gray-500 w-full justify-center"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      Add Video
+                      Add Video (paste YouTube URL)
                     </button>
-
-                    {/* Video Picker */}
-                    {videoPickerFor === project.id && (
-                      <div className="mt-3 bg-white border border-gray-200 shadow-sm rounded-xl p-4 max-h-80 overflow-y-auto">
-                        <p className="text-xs text-gray-500 mb-3">
-                          Select video files (click to add)
-                        </p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {allVideoFiles.map((file) => {
-                            const alreadyAdded = project.videos.some(
-                              (v) => v.src === `/videos/${file}`
-                            );
-                            return (
-                              <button
-                                key={file}
-                                onClick={() => !alreadyAdded && addVideoToProject(project.id, file)}
-                                disabled={alreadyAdded}
-                                className={`relative rounded-lg overflow-hidden border transition-all text-left ${
-                                  alreadyAdded
-                                    ? "border-gray-900/30 opacity-50 cursor-not-allowed"
-                                    : "border-gray-200 hover:border-gray-400 hover:scale-[1.02] cursor-pointer"
-                                }`}
-                              >
-                                <div className="aspect-video bg-black/30">
-                                  <video
-                                    src={`/videos/${file}`}
-                                    className="w-full h-full object-cover"
-                                    preload="metadata"
-                                    muted
-                                  />
-                                </div>
-                                <div className="p-2">
-                                  <p className="text-[10px] text-gray-400 truncate">{file}</p>
-                                </div>
-                                {alreadyAdded && (
-                                  <div className="absolute top-1 right-1 bg-gray-800 rounded-full p-0.5">
-                                    <Check className="w-3 h-3 text-white" />
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -1725,15 +1746,25 @@ export default function AdminPage() {
             className="max-w-4xl w-full rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <video
-              src={previewVideo}
-              controls
-              autoPlay
-              className="w-full aspect-video"
-            />
+            {previewVideo.includes("youtube.com") || previewVideo.includes("youtu.be") ? (
+              <iframe
+                src={previewVideo.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/").split("&")[0] + "?autoplay=1"}
+                className="w-full aspect-video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Video preview"
+              />
+            ) : (
+              <video
+                src={previewVideo}
+                controls
+                autoPlay
+                className="w-full aspect-video"
+              />
+            )}
             <div className="p-4 flex justify-between items-center">
               <p className="text-sm text-gray-400 truncate">
-                {previewVideo.split("/").pop()}
+                {previewVideo.includes("youtube") ? "YouTube" : previewVideo.split("/").pop()}
               </p>
               <button
                 onClick={() => setPreviewVideo(null)}

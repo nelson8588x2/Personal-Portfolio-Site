@@ -12,7 +12,7 @@
       "videos": [
         {
           "id": "video-1778579178571",
-          "src": "/videos/IMG_2885.mov",
+          "src": "https://youtu.be/j7si984wGok",
           "caption": ""
         }
       ],
@@ -25,7 +25,7 @@
       "videos": [
         {
           "id": "video-1778579148348",
-          "src": "/videos/IMG_6984.MOV",
+          "src": "https://youtu.be/uy0MXeuB3HM",
           "caption": ""
         }
       ],
@@ -38,12 +38,12 @@
       "videos": [
         {
           "id": "video-1778659011767",
-          "src": "/videos/nsI0yoCxhyhnBCBYh_FT2Psz17-i4UePeYR7WT9oRSM.MP4",
+          "src": "https://youtu.be/545e9NJ8GCA",
           "caption": ""
         },
         {
           "id": "video-1778659017800",
-          "src": "/videos/video_573135234607350221-aZ4mePMi.MP4",
+          "src": "https://youtu.be/aqhDVEsTSr8",
           "caption": ""
         }
       ],
@@ -56,32 +56,32 @@
       "videos": [
         {
           "id": "video-1778576581491",
-          "src": "/videos/IMG_6496.MOV",
+          "src": "https://youtu.be/5BvpiHMCkIQ",
           "caption": "multi-touch tracking"
         },
         {
           "id": "video-1778576584958",
-          "src": "/videos/IMG_6505.MOV",
+          "src": "https://youtu.be/jeoAGYjjFSg",
           "caption": "drag down"
         },
         {
           "id": "video-1778576587069",
-          "src": "/videos/IMG_6551.MOV",
+          "src": "https://youtu.be/ocbS7VZLJ5w",
           "caption": "A/B choose"
         },
         {
           "id": "video-1778576590024",
-          "src": "/videos/IMG_6553.MOV",
+          "src": "https://youtu.be/gvK-HSYMcUI",
           "caption": "bondary swipe"
         },
         {
           "id": "video-1778576593603",
-          "src": "/videos/IMG_6556.MOV",
+          "src": "https://youtu.be/CfVyLt9Iuhs",
           "caption": "ping-pong"
         },
         {
           "id": "video-1778576974463",
-          "src": "/videos/video_593458641811014043-NtGZf1sw.MP4",
+          "src": "https://youtu.be/jJWX2Bxyc3o",
           "caption": "LED effects exploration"
         }
       ],
@@ -94,7 +94,7 @@
       "videos": [
         {
           "id": "video-1778578482479",
-          "src": "/videos/38e9f4dba6c7b634f4d670f4ac4bf039.MP4",
+          "src": "https://youtu.be/lwUOmr0ZVWE",
           "caption": "A browser-based parametric high-rise building modeler built with p5.js. Users can interactively adjust geometry, twist, surface, and lighting parameters to generate 3D building forms, then render stylized images via Stable Diffusion (ComfyUI)."
         }
       ],
