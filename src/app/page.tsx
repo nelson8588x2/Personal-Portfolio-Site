@@ -44,6 +44,7 @@ interface Education {
 interface AboutMe {
   name: string;
   title: string;
+  motto: string;
   subtitle: string;
   avatar: string;
   introductions: string[];
@@ -349,6 +350,7 @@ const defaultPortfolio: PortfolioConfig = {
 const defaultAboutMe: AboutMe = {
   name: "Hsu Chia Yang",
   title: "Industrial Designer",
+  motto: "",
   subtitle: "",
   avatar: "",
   introductions: [],
@@ -538,6 +540,16 @@ export default function Home() {
           >
             <span className="gradient-text">{about.name}</span>
           </motion.h1>
+          {about.motto && (
+            <motion.p
+              variants={fadeInUp}
+              transition={{ duration: 0.6 }}
+              className="text-lg md:text-xl text-gray-400 mb-4 italic tracking-wide"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              {about.motto}
+            </motion.p>
+          )}
           {about.subtitle && (
             <motion.p
               variants={fadeInUp}

@@ -63,6 +63,7 @@ interface Education {
 interface AboutMe {
   name: string;
   title: string;
+  motto: string;
   subtitle: string;
   avatar: string;
   introductions: string[];
@@ -77,6 +78,7 @@ interface AboutMe {
 const defaultAboutMe: AboutMe = {
   name: "",
   title: "",
+  motto: "",
   subtitle: "",
   avatar: "",
   introductions: [],
@@ -925,6 +927,19 @@ export default function AdminPage() {
                   onChange={(e) => updateAbout("title", e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
                   placeholder="e.g. Industrial Designer"
+                />
+              </div>
+
+              {/* Motto */}
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Motto（座右銘，顯示在名字下方，使用襯線字體）</label>
+                <input
+                  type="text"
+                  value={config.aboutMe.motto}
+                  onChange={(e) => updateAbout("motto", e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400 italic"
+                  placeholder="e.g. Play to Explore. Make to Discover."
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 />
               </div>
 
