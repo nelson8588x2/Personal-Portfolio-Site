@@ -361,11 +361,14 @@ const defaultAboutMe: AboutMe = {
 };
 
 export default function Home() {
-  const [activeSection, setActiveSection] = useState<"about" | "gallery">("about");
   const [videoProjects, setVideoProjects] = useState<Project[]>([]);
   const [about, setAbout] = useState<AboutMe>(defaultAboutMe);
   const [portfolio, setPortfolio] = useState<PortfolioConfig>(defaultPortfolio);
   const [theme, setTheme] = useState<ThemeConfig>(defaultTheme);
+  const [unlocked, setUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [checkingPassword, setCheckingPassword] = useState(true);
 
   // Load all data from API
   const loadData = useCallback(async () => {
@@ -381,9 +384,86 @@ export default function Home() {
     }
   }, []);
 
+  // 檢查密碼是否啟用
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/password");
+        const data = await res.json();
+        if (!data.enabled) {
+          setUnlocked(true);
+        }
+      } catch {
+        setUnlocked(true);
+      }
+      setCheckingPassword(false);
+    })();
+  }, []);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    const res = await fetch("/api/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: passwordInput }),
+    });
+    const data = await res.json();
+    if (data.unlocked) {
+      setUnlocked(true);
+    } else {
+      setPasswordError(data.message || "密碼錯誤");
+    }
+  };
+
+  // 密碼鎖定畫面
+  if (checkingPassword) {
+    return <div className="min-h-screen bg-gray-100" />;
+  }
+
+  if (!unlocked) {
+    return (
+      <div className="min-h-screen bg-gray-100/80 backdrop-blur-md flex items-center justify-center px-6" style={{ fontFamily: `'${theme.font}', sans-serif` }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center"
+        >
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Enter Password</h2>
+          <p className="text-gray-500 text-sm mb-6">This site is password protected.</p>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-center text-gray-800 outline-none focus:ring-2 focus:ring-gray-300 transition-shadow"
+              placeholder="Password"
+              autoFocus
+            />
+            {passwordError && (
+              <p className="text-red-500 text-sm">{passwordError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors"
+            >
+              Unlock
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen" style={{ fontFamily: `'${theme.font}', sans-serif` }}>
@@ -394,22 +474,24 @@ export default function Home() {
             {about.name}
           </a>
           <div className="flex gap-6 text-sm">
-            <button
-              onClick={() => setActiveSection("about")}
-              className={`transition-colors ${
-                activeSection === "about" ? "text-gray-900 font-medium" : "text-gray-500 hover:text-gray-900"
-              }`}
+            <a
+              href="#about"
+              className="text-gray-500 hover:text-gray-900 transition-colors"
             >
-              About Me
-            </button>
-            <button
-              onClick={() => setActiveSection("gallery")}
-              className={`transition-colors ${
-                activeSection === "gallery" ? "text-gray-900 font-medium" : "text-gray-500 hover:text-gray-900"
-              }`}
+              About
+            </a>
+            <a
+              href="#works"
+              className="text-gray-500 hover:text-gray-900 transition-colors"
             >
-              Gallery
-            </button>
+              Works
+            </a>
+            <a
+              href="#contact"
+              className="text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Contact
+            </a>
           </div>
         </div>
       </nav>
@@ -470,13 +552,13 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="flex gap-4 justify-center"
           >
-            <button
-              onClick={() => setActiveSection("gallery")}
+            <a
+              href="#works"
               className="px-6 py-3 text-white rounded-full font-medium transition-opacity hover:opacity-80"
               style={{ backgroundColor: theme.accentColor }}
             >
               View Works
-            </button>
+            </a>
             <a
               href="#contact"
               className="px-6 py-3 border border-gray-300 rounded-full font-medium hover:bg-gray-50 transition-colors"
@@ -496,12 +578,7 @@ export default function Home() {
       </section>
 
       {/* ============ ABOUT ME Section ============ */}
-      {activeSection === "about" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+      <div id="about">
           {/* Introduction */}
           <section className="py-24 px-6">
             <div className="max-w-4xl mx-auto">
@@ -651,16 +728,10 @@ export default function Home() {
               </motion.div>
             </div>
           </section>
-        </motion.div>
-      )}
+      </div>
 
-      {/* ============ GALLERY Section ============ */}
-      {activeSection === "gallery" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+      {/* ============ WORKS Section ============ */}
+      <div id="works">
           {/* PDF FlipBook */}
           <section className="py-24 px-6">
             <div className="max-w-5xl mx-auto">
@@ -794,8 +865,7 @@ export default function Home() {
               </motion.div>
             </div>
           </section>
-        </motion.div>
-      )}
+      </div>
 
       {/* Contact & Footer */}
       <section id="contact" className="py-24 px-6">
@@ -820,31 +890,35 @@ export default function Home() {
             >
               Have an idea or question? Feel free to reach out.
             </motion.p>
+            {about.contactEmail && (
+              <motion.a
+                variants={fadeInUp}
+                transition={{ duration: 0.6 }}
+                href={`mailto:${about.contactEmail}`}
+                className="inline-flex items-center gap-3 glass rounded-2xl px-6 py-4 hover:bg-gray-100 transition-colors group mb-8"
+              >
+                <Mail className="w-5 h-5 text-gray-500 group-hover:text-gray-800 transition-colors" />
+                <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
+                  {about.contactEmail}
+                </span>
+              </motion.a>
+            )}
             <motion.div
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="flex justify-center gap-6"
+              className="flex justify-center gap-4"
             >
-              {about.contactEmail && (
-                <a
-                  href={`mailto:${about.contactEmail}`}
-                  className="glass rounded-full p-4 hover:bg-gray-100 transition-colors group"
-                  aria-label="Email"
-                >
-                  <Mail className="w-6 h-6 text-gray-500 group-hover:text-gray-800 transition-colors" />
-                </a>
-              )}
               {about.behanceUrl && (
                 <a
                   href={about.behanceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass rounded-full p-4 hover:bg-gray-100 transition-colors group"
-                  aria-label="Behance"
+                  className="glass rounded-full px-5 py-3 hover:bg-gray-100 transition-colors group flex items-center gap-2"
                 >
                   <span className="text-gray-500 group-hover:text-gray-800 transition-colors font-bold text-sm">
                     Bē
                   </span>
+                  <span className="text-gray-500 group-hover:text-gray-800 text-sm">Behance</span>
                 </a>
               )}
               {about.linkedinUrl && (
@@ -852,10 +926,10 @@ export default function Home() {
                   href={about.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass rounded-full p-4 hover:bg-gray-100 transition-colors group"
-                  aria-label="LinkedIn"
+                  className="glass rounded-full px-5 py-3 hover:bg-gray-100 transition-colors group flex items-center gap-2"
                 >
-                  <Linkedin className="w-6 h-6 text-gray-500 group-hover:text-gray-800 transition-colors" />
+                  <Linkedin className="w-5 h-5 text-gray-500 group-hover:text-gray-800 transition-colors" />
+                  <span className="text-gray-500 group-hover:text-gray-800 text-sm">LinkedIn</span>
                 </a>
               )}
             </motion.div>

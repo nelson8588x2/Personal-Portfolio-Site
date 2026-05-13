@@ -136,7 +136,7 @@ export default function AdminPage() {
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const cropImgRef = useRef<HTMLImageElement | null>(null);
-  const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "projects" | "theme">("projects");
+  const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "projects" | "theme" | "settings">("projects");
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfProgress, setPdfProgress] = useState("");
   const [portfolioDrag, setPortfolioDrag] = useState<{ from: number } | null>(null);
@@ -144,6 +144,9 @@ export default function AdminPage() {
   const [saved, setSaved] = useState(false);
   const [deploying, setDeploying] = useState(false);
   const [deployMsg, setDeployMsg] = useState("");
+  const [sitePassword, setSitePassword] = useState("1234");
+  const [passwordEnabled, setPasswordEnabled] = useState(true);
+  const [passwordSaved, setPasswordSaved] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [videoPickerFor, setVideoPickerFor] = useState<string | null>(null);
   const [imagePickerFor, setImagePickerFor] = useState<string | null>(null);
@@ -181,6 +184,13 @@ export default function AdminPage() {
     setAllAvatarFiles(avatarsData.files || []);
     // Expand all by default
     setExpandedProjects(new Set(projects.map((p: Project) => p.id)));
+    // 載入密碼設定
+    try {
+      const pwRes = await fetch("/api/password");
+      const pwData = await pwRes.json();
+      setSitePassword(pwData.password || "1234");
+      setPasswordEnabled(pwData.enabled !== false);
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
@@ -750,6 +760,19 @@ export default function AdminPage() {
           >
             <Palette className="w-4 h-4" />
             Theme
+          </button>
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+              activeTab === "settings"
+                ? "bg-gray-900 text-white"
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Settings
           </button>
         </div>
 
@@ -1731,6 +1754,70 @@ export default function AdminPage() {
                 </span>
                 <span className="text-xs text-gray-400 ml-auto">按鈕預覽</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============ Settings Tab ============ */}
+        {activeTab === "settings" && (
+          <div className="space-y-8">
+            <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
+              <h2 className="text-lg font-semibold">Site Password Protection</h2>
+              <p className="text-sm text-gray-500">
+                啟用後，訪客必須輸入密碼才能看到網站內容。
+              </p>
+
+              {/* 啟用/停用 */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">啟用密碼保護</span>
+                <button
+                  onClick={() => setPasswordEnabled(!passwordEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    passwordEnabled ? "bg-gray-900" : "bg-gray-300"
+                  }`}
+                  title="Toggle password protection"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                      passwordEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* 密碼輸入 */}
+              {passwordEnabled && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">網站密碼</label>
+                  <input
+                    type="text"
+                    value={sitePassword}
+                    onChange={(e) => setSitePassword(e.target.value)}
+                    className="w-full max-w-xs px-4 py-2 border border-gray-200 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-gray-300"
+                    placeholder="輸入新密碼"
+                  />
+                </div>
+              )}
+
+              {/* 儲存按鈕 */}
+              <button
+                onClick={async () => {
+                  await fetch("/api/password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      action: "update",
+                      newPassword: sitePassword,
+                      enabled: passwordEnabled,
+                    }),
+                  });
+                  setPasswordSaved(true);
+                  setTimeout(() => setPasswordSaved(false), 2000);
+                }}
+                className="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                {passwordSaved ? "✓ Saved" : "Save Password Settings"}
+              </button>
             </div>
           </div>
         )}
