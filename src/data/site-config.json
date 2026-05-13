@@ -1,0 +1,301 @@
+{
+  "theme": {
+    "font": "Inter",
+    "headingWeight": "800",
+    "accentColor": "#1a1a1a"
+  },
+  "projects": [
+    {
+      "id": "project-1778578969541",
+      "title": "ROBO",
+      "description": "RoBo is an AI-powered robotic companion that uses Google Gemini's real-time audio/video streaming API to hold live voice conversations while physically tracking people with servo-controlled head movement and displaying expressive animated faces on a screen.",
+      "videos": [
+        {
+          "id": "video-1778579178571",
+          "src": "/videos/IMG_2885.mov",
+          "caption": ""
+        }
+      ],
+      "images": []
+    },
+    {
+      "id": "project-1778578967408",
+      "title": "GazeCursorJump",
+      "description": "GazeCursorJump is a multi-monitor mouse teleportation tool that uses a standard webcam to track head pose. When it detects the user looking at a different screen, the cursor automatically jumps to that monitor — enabling hands-free cross-screen switching.",
+      "videos": [
+        {
+          "id": "video-1778579148348",
+          "src": "/videos/IMG_6984.MOV",
+          "caption": ""
+        }
+      ],
+      "images": []
+    },
+    {
+      "id": "project-1778657618841",
+      "title": "K2 Plus",
+      "description": "K2 Plus is a functional prototype for an AI-powered conference assistant device. The Android phone is embedded as the product’s main screen, presenting meeting information, agenda, sign-in, realtime AI interaction, and meeting minutes. A Wear OS smartwatch is used to simulate the detachable Agent Dial, enabling swipe navigation, voice input, gesture control, and meeting workflow triggers.\n\nThe project explores how AI voice interaction, embedded display interfaces, and physical controls can work together to create a more natural and hands-free meeting experience.",
+      "videos": [
+        {
+          "id": "video-1778659011767",
+          "src": "/videos/nsI0yoCxhyhnBCBYh_FT2Psz17-i4UePeYR7WT9oRSM.MP4",
+          "caption": ""
+        },
+        {
+          "id": "video-1778659017800",
+          "src": "/videos/video_573135234607350221-aZ4mePMi.MP4",
+          "caption": ""
+        }
+      ],
+      "images": []
+    },
+    {
+      "id": "project-1",
+      "title": "8 zone LED CTP",
+      "description": "Exploration of touch position and lighting effects on a touch panel",
+      "videos": [
+        {
+          "id": "video-1778576581491",
+          "src": "/videos/IMG_6496.MOV",
+          "caption": "multi-touch tracking"
+        },
+        {
+          "id": "video-1778576584958",
+          "src": "/videos/IMG_6505.MOV",
+          "caption": "drag down"
+        },
+        {
+          "id": "video-1778576587069",
+          "src": "/videos/IMG_6551.MOV",
+          "caption": "A/B choose"
+        },
+        {
+          "id": "video-1778576590024",
+          "src": "/videos/IMG_6553.MOV",
+          "caption": "bondary swipe"
+        },
+        {
+          "id": "video-1778576593603",
+          "src": "/videos/IMG_6556.MOV",
+          "caption": "ping-pong"
+        },
+        {
+          "id": "video-1778576974463",
+          "src": "/videos/video_593458641811014043-NtGZf1sw.MP4",
+          "caption": "LED effects exploration"
+        }
+      ],
+      "images": []
+    },
+    {
+      "id": "project-1778578463128",
+      "title": "AI-Assisted Parametric Design System",
+      "description": "An interactive parametric tower generator with AI rendering, built in p5.js.",
+      "videos": [
+        {
+          "id": "video-1778578482479",
+          "src": "/videos/38e9f4dba6c7b634f4d670f4ac4bf039.MP4",
+          "caption": "A browser-based parametric high-rise building modeler built with p5.js. Users can interactively adjust geometry, twist, surface, and lighting parameters to generate 3D building forms, then render stylized images via Stable Diffusion (ComfyUI)."
+        }
+      ],
+      "images": []
+    }
+  ],
+  "availableVideos": [
+    "38e9f4dba6c7b634f4d670f4ac4bf039.MP4",
+    "IMG_2885.mov",
+    "IMG_6478.MOV",
+    "IMG_6496.MOV",
+    "IMG_6505.MOV",
+    "IMG_6551.MOV",
+    "IMG_6553.MOV",
+    "IMG_6556.MOV",
+    "IMG_6984.MOV",
+    "nsI0yoCxhyhnBCBYh_FT2Psz17-i4UePeYR7WT9oRSM.MP4",
+    "video_573135234607350221-aZ4mePMi.MP4",
+    "video_593458641811014043-NtGZf1sw.MP4"
+  ],
+  "aboutMe": {
+    "name": "Hsu Chia Yang",
+    "title": "Industrial Designer",
+    "subtitle": "Senior at Compal Electronics",
+    "avatar": "/avatars/avatar-cropped-1778581977252.png",
+    "introductions": [
+      "I’m Hsu Chia Yang, an industrial designer.\nI use play as a way to explore, turning vague ideas into tangible works through hands-on making, experimentation, and prototyping."
+    ],
+    "experiences": [
+      {
+        "id": "exp-1",
+        "period": "2022/7 — Present",
+        "role": "Industrial Designer",
+        "company": "Compal Electronics, Inc.",
+        "desc": "Focused on laptop ODM design and development, driving innovative product design."
+      },
+      {
+        "id": "exp-2",
+        "period": "2021/7 — 2022/6",
+        "role": "Industrial Designer",
+        "company": "Aeonmotor Co., Ltd.",
+        "desc": "Completed the Croxera M smart rearview mirror project; raised NT$2.6M on Zeczec crowdfunding."
+      },
+      {
+        "id": "exp-3",
+        "period": "2019/9 — 2020/8",
+        "role": "Industrial Designer (Full-time Intern)",
+        "company": "Compal Electronics, Inc.",
+        "desc": "Developed the Taiwan Excellence Award-winning SHENNONA hearing aid charging case."
+      }
+    ],
+    "skillGroups": [
+      {
+        "id": "skill-1",
+        "category": "Industrial Design / Product Design",
+        "items": [
+          "Creo Parametric",
+          "SolidWorks",
+          "KeyShot",
+          "Adobe Photoshop",
+          "Adobe Illustrator"
+        ]
+      },
+      {
+        "id": "skill-2",
+        "category": "Interactive Prototyping",
+        "items": [
+          "Arduino",
+          "Microcontrollers",
+          "Python"
+        ]
+      },
+      {
+        "id": "skill-3",
+        "category": "Machine Learning & Deep Learning",
+        "items": [
+          "PyTorch",
+          "scikit-learn",
+          "CNNs",
+          "Transfer Learning"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "id": "edu-1",
+        "school": "National Cheng Kung University",
+        "degree": "B.S. in Industrial Design",
+        "period": "2016/9 — 2021/6"
+      }
+    ],
+    "contactEmail": "nelson8588x2@gmail.com",
+    "behanceUrl": "",
+    "linkedinUrl": ""
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "2025 Hsu Chia Yang's Portfolio — Click the arrows to flip pages",
+    "coverPage": "/book/pages/cover-1.jpg",
+    "backCoverPage": "/book/pages/cover-2.jpg",
+    "contentPages": [
+      "/book/pages/content-1.jpg",
+      "/book/pages/content-2.jpg",
+      "/book/pages/content-3.jpg",
+      "/book/pages/content-4.jpg",
+      "/book/pages/content-5.jpg",
+      "/book/pages/content-6.jpg",
+      "/book/pages/content-7.jpg",
+      "/book/pages/content-8.jpg",
+      "/book/pages/content-9.jpg",
+      "/book/pages/content-10.jpg",
+      "/book/pages/content-11.jpg",
+      "/book/pages/content-12.jpg",
+      "/book/pages/content-13.jpg",
+      "/book/pages/content-14.jpg",
+      "/book/pages/content-15.jpg",
+      "/book/pages/content-16.jpg",
+      "/book/pages/content-17.jpg",
+      "/book/pages/content-18.jpg",
+      "/book/pages/content-19.jpg",
+      "/book/pages/content-20.jpg",
+      "/book/pages/content-21.jpg",
+      "/book/pages/content-22.jpg",
+      "/book/pages/content-23.jpg",
+      "/book/pages/content-24.jpg",
+      "/book/pages/content-25.jpg",
+      "/book/pages/content-26.jpg",
+      "/book/pages/content-27.jpg",
+      "/book/pages/content-28.jpg",
+      "/book/pages/content-29.jpg",
+      "/book/pages/content-30.jpg",
+      "/book/pages/content-31.jpg",
+      "/book/pages/content-32.jpg",
+      "/book/pages/content-33.jpg",
+      "/book/pages/content-34.jpg",
+      "/book/pages/content-35.jpg",
+      "/book/pages/content-36.jpg",
+      "/book/pages/content-37.jpg",
+      "/book/pages/content-38.jpg",
+      "/book/pages/content-39.jpg",
+      "/book/pages/content-40.jpg",
+      "/book/pages/content-41.jpg",
+      "/book/pages/content-42.jpg",
+      "/book/pages/content-43.jpg",
+      "/book/pages/content-44.jpg",
+      "/book/pages/content-45.jpg",
+      "/book/pages/content-46.jpg",
+      "/book/pages/content-47.jpg",
+      "/book/pages/content-48.jpg",
+      "/book/pages/content-49.jpg",
+      "/book/pages/content-50.jpg",
+      "/book/pages/content-51.jpg",
+      "/book/pages/content-52.jpg",
+      "/book/pages/content-53.jpg",
+      "/book/pages/content-54.jpg",
+      "/book/pages/content-55.jpg",
+      "/book/pages/content-56.jpg",
+      "/book/pages/content-57.jpg",
+      "/book/pages/content-58.jpg",
+      "/book/pages/content-59.jpg",
+      "/book/pages/content-60.jpg",
+      "/book/pages/content-61.jpg",
+      "/book/pages/content-62.jpg",
+      "/book/pages/content-63.jpg",
+      "/book/pages/content-64.jpg",
+      "/book/pages/content-65.jpg",
+      "/book/pages/content-66.jpg",
+      "/book/pages/content-67.jpg",
+      "/book/pages/content-68.jpg",
+      "/book/pages/content-69.jpg",
+      "/book/pages/content-70.jpg",
+      "/book/pages/content-71.jpg",
+      "/book/pages/content-72.jpg",
+      "/book/pages/content-73.jpg",
+      "/book/pages/content-74.jpg",
+      "/book/pages/content-75.jpg",
+      "/book/pages/content-76.jpg",
+      "/book/pages/content-77.jpg",
+      "/book/pages/content-78.jpg",
+      "/book/pages/content-79.jpg",
+      "/book/pages/content-80.jpg",
+      "/book/pages/content-81.jpg",
+      "/book/pages/content-82.jpg",
+      "/book/pages/content-83.jpg",
+      "/book/pages/content-84.jpg",
+      "/book/pages/content-85.jpg",
+      "/book/pages/content-86.jpg",
+      "/book/pages/content-87.jpg",
+      "/book/pages/content-88.jpg",
+      "/book/pages/content-89.jpg",
+      "/book/pages/content-90.jpg",
+      "/book/pages/content-91.jpg",
+      "/book/pages/content-92.jpg",
+      "/book/pages/content-93.jpg",
+      "/book/pages/content-94.jpg",
+      "/book/pages/content-95.jpg",
+      "/book/pages/content-96.jpg",
+      "/book/pages/content-97.jpg",
+      "/book/pages/content-98.jpg",
+      "/book/pages/content-99.jpg",
+      "/book/pages/content-100.jpg"
+    ]
+  }
+}
