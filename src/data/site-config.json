@@ -119,7 +119,6 @@
     "name": "Hsu Chia Yang",
     "title": "Industrial Designer",
     "motto": "Play to Explore. Make to Discover.",
-    "subtitle": "Senior at Compal Electronics",
     "avatar": "/avatars/avatar-cropped-1778581977252.png",
     "introductions": [
       "I’m Hsu Chia Yang, an industrial designer.\nI use play as a way to explore, turning vague ideas into tangible works through hands-on making, experimentation, and prototyping."
@@ -132,7 +131,7 @@
         "company": "Compal Electronics, Inc.",
         "desc": "Focused on laptop ODM design and development, driving innovative product design.",
         "logo": "/logos/logo-1785312515866.png",
-        "logoSize": 28
+        "logoSize": 48
       },
       {
         "id": "exp-2",
@@ -141,7 +140,7 @@
         "company": "Aeonmotor Co., Ltd.",
         "desc": "Completed the Croxera M smart rearview mirror project; raised NT$2.6M on Zeczec crowdfunding.",
         "logo": "/logos/logo-1785312524164.png",
-        "logoSize": 28
+        "logoSize": 48
       },
       {
         "id": "exp-3",
@@ -150,7 +149,7 @@
         "company": "Compal Electronics, Inc.",
         "desc": "Developed the Taiwan Excellence Award-winning SHENNONA hearing aid charging case.",
         "logo": "/logos/logo-1785312534441.png",
-        "logoSize": 28
+        "logoSize": 48
       }
     ],
     "skillGroups": [
@@ -192,7 +191,7 @@
         "degree": "B.S. in Industrial Design",
         "period": "2016/9 — 2021/6",
         "logo": "/logos/logo-1785312555014.png",
-        "logoSize": 28
+        "logoSize": 64
       }
     ],
     "contactEmail": "nelson8588x2@gmail.com",

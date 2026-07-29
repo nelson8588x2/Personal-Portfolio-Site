@@ -76,7 +76,6 @@ interface AboutMe {
   name: string;
   title: string;
   motto: string;
-  subtitle: string;
   avatar: string;
   introductions: string[];
   experiences: Experience[];
@@ -93,7 +92,6 @@ const defaultAboutMe: AboutMe = {
   name: "",
   title: "",
   motto: "",
-  subtitle: "",
   avatar: "",
   introductions: [],
   experiences: [],
@@ -1055,11 +1053,14 @@ export default function AdminPage() {
                         image={cropSrc}
                         crop={cropPosition}
                         zoom={cropZoom}
+                        minZoom={0.1}
+                        maxZoom={3}
                         aspect={cropAspect}
                         onCropChange={setCropPosition}
                         onZoomChange={setCropZoom}
                         onCropComplete={onCropComplete}
                         showGrid={true}
+                        objectFit="contain"
                         cropShape={cropTarget?.type === "avatar" ? "round" : "rect"}
                         style={{
                           containerStyle: { background: "#1a1a1a" },
@@ -1074,7 +1075,7 @@ export default function AdminPage() {
                       <span className="text-xs text-gray-500 w-10">Zoom</span>
                       <input
                         type="range"
-                        min={1}
+                        min={0.1}
                         max={3}
                         step={0.01}
                         value={cropZoom}
@@ -1150,17 +1151,6 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* Subtitle */}
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Subtitle (Hero section)</label>
-                <textarea
-                  value={config.aboutMe.subtitle}
-                  onChange={(e) => updateAbout("subtitle", e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400 resize-none"
-                  rows={3}
-                  placeholder="Short introduction shown in the hero section..."
-                />
-              </div>
 
               {/* Contact Links */}
               <div className="grid md:grid-cols-2 gap-4">
@@ -1289,7 +1279,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-xs text-gray-500">Logo</span>
                     {exp.logo && (
-                      <img src={exp.logo} alt="logo" style={{ height: exp.logoSize || 28 }} className="object-contain" />
+                      <img src={exp.logo} alt="logo" style={{ height: exp.logoSize || 48 }} className="object-contain" />
                     )}
                     <div className="flex items-center gap-2">
                       <label className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
@@ -1317,11 +1307,11 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <label className="text-xs text-gray-500">Size</label>
                         <input
-                          type="range" min="16" max="64" value={exp.logoSize || 28}
+                          type="range" min="16" max="64" value={exp.logoSize || 48}
                           onChange={(e) => updateExperience(exp.id, "logoSize", Number(e.target.value))}
                           className="w-24 h-1 accent-gray-600"
                         />
-                        <span className="text-xs text-gray-400">{exp.logoSize || 28}px</span>
+                        <span className="text-xs text-gray-400">{exp.logoSize || 48}px</span>
                       </div>
                     )}
                   </div>
@@ -1436,7 +1426,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-xs text-gray-500">Logo</span>
                     {edu.logo && (
-                      <img src={edu.logo} alt="logo" style={{ height: edu.logoSize || 28 }} className="object-contain" />
+                      <img src={edu.logo} alt="logo" style={{ height: edu.logoSize || 48 }} className="object-contain" />
                     )}
                     <div className="flex items-center gap-2">
                       <label className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
@@ -1464,11 +1454,11 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <label className="text-xs text-gray-500">Size</label>
                         <input
-                          type="range" min="16" max="64" value={edu.logoSize || 28}
+                          type="range" min="16" max="64" value={edu.logoSize || 48}
                           onChange={(e) => updateEducation(edu.id, "logoSize", Number(e.target.value))}
                           className="w-24 h-1 accent-gray-600"
                         />
-                        <span className="text-xs text-gray-400">{edu.logoSize || 28}px</span>
+                        <span className="text-xs text-gray-400">{edu.logoSize || 48}px</span>
                       </div>
                     )}
                   </div>

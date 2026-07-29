@@ -56,7 +56,6 @@ interface AboutMe {
   name: string;
   title: string;
   motto: string;
-  subtitle: string;
   avatar: string;
   introductions: string[];
   experiences: Experience[];
@@ -208,7 +207,6 @@ const defaultAboutMe: AboutMe = {
   name: "Hsu Chia Yang",
   title: "Industrial Designer",
   motto: "",
-  subtitle: "",
   avatar: "",
   introductions: [],
   experiences: [],
@@ -384,38 +382,29 @@ export default function Home() {
               />
             </motion.div>
           )}
-          <motion.p
-            variants={fadeInUp}
-            transition={{ duration: 0.6 }}
-            className="text-gray-500 text-lg mb-4"
-          >
-            {about.title}
-          </motion.p>
           <motion.h1
             variants={fadeInUp}
             transition={{ duration: 0.6 }}
-            className="text-5xl md:text-7xl mb-6"
+            className="text-5xl md:text-7xl mb-4"
             style={{ fontWeight: Number(theme.headingWeight) }}
           >
             <span className="gradient-text">{about.name}</span>
           </motion.h1>
+          <motion.p
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+            className="text-gray-500 text-base md:text-lg tracking-wide uppercase mb-6"
+          >
+            {about.title}
+          </motion.p>
           {about.motto && (
             <motion.p
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-lg md:text-xl text-gray-400 mb-4 italic tracking-wide"
+              className="text-lg md:text-xl text-gray-400 mb-10 italic tracking-wide"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
               {about.motto}
-            </motion.p>
-          )}
-          {about.subtitle && (
-            <motion.p
-              variants={fadeInUp}
-              transition={{ duration: 0.6 }}
-              className="text-gray-500 max-w-xl mx-auto mb-10 whitespace-pre-line"
-            >
-              {about.subtitle}
             </motion.p>
           )}
           <motion.div
@@ -462,17 +451,17 @@ export default function Home() {
                 <motion.h2
                   variants={fadeInUp}
                   transition={{ duration: 0.6 }}
-                  className="text-3xl md:text-4xl font-bold mb-8"
+                  className="text-3xl md:text-4xl font-bold mb-12"
                 >
                   <span className="gradient-text">About Me</span>
                 </motion.h2>
                 <motion.div
                   variants={fadeInUp}
                   transition={{ duration: 0.6 }}
-                  className="glass rounded-2xl p-8 md:p-12 space-y-6 text-gray-600 leading-relaxed"
+                  className="glass rounded-2xl p-8 md:p-12 space-y-6 text-gray-600 text-base leading-relaxed"
                 >
                   {about.introductions.map((text, i) => (
-                    <p key={i}>{text}</p>
+                    <p key={i} className="whitespace-pre-line">{text}</p>
                   ))}
                 </motion.div>
               </motion.div>
@@ -495,7 +484,7 @@ export default function Home() {
                 >
                   <span className="gradient-text">Experience</span>
                 </motion.h2>
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {about.experiences.map((exp) => (
                     <motion.div
                       key={exp.id}
@@ -504,22 +493,26 @@ export default function Home() {
                       className="glass rounded-2xl p-6 md:p-8 relative overflow-hidden"
                     >
                       <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-gray-600 to-gray-400" />
-                      <p className="text-sm text-gray-500 mb-1">{exp.period}</p>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {exp.role}
-                      </h3>
-                      <div className="flex items-center gap-2 mb-3">
-                        {exp.logo && (
-                          <img
-                            src={exp.logo}
-                            alt={exp.company}
-                            style={{ height: exp.logoSize || 28 }}
-                            className="object-contain"
-                          />
-                        )}
-                        <p className="text-gray-600 text-sm">{exp.company}</p>
+                      <div className="pl-4">
+                        <div className="flex items-center gap-4 mb-3">
+                          {exp.logo && (
+                            <img
+                              src={exp.logo}
+                              alt={exp.company}
+                              style={{ height: exp.logoSize || 48 }}
+                              className="object-contain shrink-0"
+                            />
+                          )}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+                              {exp.role}
+                            </h3>
+                            <p className="text-gray-600 text-sm">{exp.company}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mb-2">{exp.period}</p>
+                        <p className="text-gray-500 text-sm leading-relaxed">{exp.desc}</p>
                       </div>
-                      <p className="text-gray-500 text-sm">{exp.desc}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -549,18 +542,18 @@ export default function Home() {
                       key={skill.id}
                       variants={fadeInUp}
                       transition={{ duration: 0.5 }}
-                      className="glass rounded-2xl p-6"
+                      className="glass rounded-2xl p-6 md:p-8"
                     >
-                      <h3 className="font-semibold text-lg mb-4 text-gray-800">
+                      <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4 pb-3 border-b border-gray-200">
                         {skill.category}
                       </h3>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2.5">
                         {skill.items.map((item, i) => (
                           <li
                             key={i}
-                            className="text-gray-600 text-sm flex items-center gap-2"
+                            className="text-gray-700 text-sm flex items-center gap-2.5"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                            <span className="w-1 h-1 rounded-full bg-gray-400 shrink-0" />
                             {item}
                           </li>
                         ))}
@@ -594,25 +587,27 @@ export default function Home() {
                       key={edu.id}
                       variants={fadeInUp}
                       transition={{ duration: 0.5 }}
-                      className="glass rounded-2xl p-6"
+                      className="glass rounded-2xl p-6 md:p-8"
                     >
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-4 mb-4">
                         {edu.logo && (
                           <img
                             src={edu.logo}
                             alt={edu.school}
-                            style={{ height: edu.logoSize || 28 }}
-                            className="object-contain"
+                            style={{ height: edu.logoSize || 48 }}
+                            className="object-contain shrink-0"
                           />
                         )}
-                        <h3 className="font-semibold text-lg text-gray-900">
-                          {edu.school}
-                        </h3>
+                        <div>
+                          <h3 className="font-semibold text-lg text-gray-900 leading-tight">
+                            {edu.school}
+                          </h3>
+                          <p className="text-gray-600 text-sm mt-0.5">
+                            {edu.degree}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-gray-600 text-sm mb-1">
-                        {edu.degree}
-                      </p>
-                      <p className="text-gray-500 text-sm">{edu.period}</p>
+                      <p className="text-xs text-gray-400">{edu.period}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -662,13 +657,13 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <div className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <AwardIcon className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-800">{award.title}</span>
+                        <div className="px-5 py-4 flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <AwardIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                            <span className="text-sm font-medium text-gray-800 leading-tight">{award.title}</span>
                           </div>
                           {award.link && (
-                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
+                            <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-gray-700 transition-colors shrink-0 ml-3" />
                           )}
                         </div>
                       </motion.a>
@@ -829,14 +824,14 @@ export default function Home() {
             <motion.h2
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold mb-6"
+              className="text-3xl md:text-4xl font-bold mb-4"
             >
               <span className="gradient-text">Contact</span>
             </motion.h2>
             <motion.p
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-gray-500 mb-10 max-w-md mx-auto"
+              className="text-gray-500 text-sm mb-10 max-w-md mx-auto"
             >
               Have an idea or question? Feel free to reach out.
             </motion.p>
