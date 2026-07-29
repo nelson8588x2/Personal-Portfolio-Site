@@ -130,7 +130,7 @@
         "role": "Senior Industrial Designer",
         "company": "Compal Electronics, Inc.",
         "desc": "Focused on laptop ODM design and development, driving innovative product design.",
-        "logo": "/logos/logo-1785312515866.png",
+        "logo": "/logos/experience/Compal_Electronics.png",
         "logoSize": 48
       },
       {
@@ -139,7 +139,7 @@
         "role": "Industrial Designer",
         "company": "Aeonmotor Co., Ltd.",
         "desc": "Completed the Croxera M smart rearview mirror project; raised NT$2.6M on Zeczec crowdfunding.",
-        "logo": "/logos/logo-1785312524164.png",
+        "logo": "/logos/experience/Aeonmotor.png",
         "logoSize": 48
       },
       {
@@ -148,7 +148,7 @@
         "role": "Industrial Designer (Full-time Intern)",
         "company": "Compal Electronics, Inc.",
         "desc": "Developed the Taiwan Excellence Award-winning SHENNONA hearing aid charging case.",
-        "logo": "/logos/logo-1785312534441.png",
+        "logo": "/logos/experience/Compal_Electronics_2.png",
         "logoSize": 48
       }
     ],
@@ -190,7 +190,7 @@
         "school": "National Cheng Kung University",
         "degree": "B.S. in Industrial Design",
         "period": "2016/9 — 2021/6",
-        "logo": "/logos/logo-1785313690096.png",
+        "logo": "/logos/education/cropped_5.png",
         "logoSize": 48
       }
     ],
@@ -202,13 +202,13 @@
       {
         "id": "award-1785311419716",
         "title": "iF Design Award 2025",
-        "image": "/logos/logo-1785312394180.png",
+        "image": "/logos/award/ProDirect.png",
         "link": "https://ifdesign.com/en/winner-ranking/project/prodirect/688266"
       },
       {
         "id": "award-1785311457639",
         "title": "Taiwan Excellence Award",
-        "image": "/logos/logo-1785312413467.png",
+        "image": "/logos/award/SHENNONA.png",
         "link": "https://www.taiwanexcellence.org/en/award/product/1110492"
       }
     ]
