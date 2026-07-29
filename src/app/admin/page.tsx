@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import ReactCrop, { type Crop, type PixelCrop } from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import { useState, useEffect, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
 import {
   Plus,
   Trash2,
@@ -151,9 +151,10 @@ export default function AdminPage() {
   const [allAvatarFiles, setAllAvatarFiles] = useState<string[]>([]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
-  const cropImgRef = useRef<HTMLImageElement | null>(null);
+  const [cropPosition, setCropPosition] = useState({ x: 0, y: 0 });
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropAspect, setCropAspect] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   // 裁切目標：決定裁切後的圖片要上傳到哪裡、更新哪個欄位
   const [cropTarget, setCropTarget] = useState<
     | { type: "avatar" }
@@ -162,6 +163,8 @@ export default function AdminPage() {
     | { type: "awardImage"; id: string }
     | null
   >(null);
+  // 原始選擇的檔案（用於 Skip Crop 直接上傳）
+  const [cropRawFile, setCropRawFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "projects" | "theme" | "settings">("projects");
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfProgress, setPdfProgress] = useState("");
@@ -475,44 +478,67 @@ export default function AdminPage() {
 
   // ============ 通用裁切 helpers ============
 
+  const getDefaultAspect = (target: typeof cropTarget) => {
+    if (!target) return 1;
+    switch (target.type) {
+      case "avatar": return 1;
+      case "awardImage": return 16 / 9;
+      default: return 1; // logo 預設 1:1
+    }
+  };
+
   const openCropEditor = (
     src: string,
     target: typeof cropTarget = { type: "avatar" }
   ) => {
     setCropSrc(src);
     setCropTarget(target);
-    setCrop(undefined);
-    setCompletedCrop(null);
+    setCropPosition({ x: 0, y: 0 });
+    setCropZoom(1);
+    setCropAspect(getDefaultAspect(target));
+    setCroppedAreaPixels(null);
   };
 
   const cancelCrop = () => {
     setCropSrc(null);
     setCropTarget(null);
-    setCrop(undefined);
-    setCompletedCrop(null);
+    setCroppedAreaPixels(null);
+    setCropRawFile(null);
   };
 
-  // 根據 cropTarget 決定上傳 API 和更新的狀態欄位
+  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
+
+  // 將裁切區域繪製到 canvas 並上傳
   const applyCrop = async () => {
-    if (!completedCrop || !cropImgRef.current || !cropTarget) return;
-    const img = cropImgRef.current;
+    if (!croppedAreaPixels || !cropSrc || !cropTarget) return;
+
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.src = cropSrc;
+    await new Promise((resolve) => { image.onload = resolve; });
+
     const canvas = document.createElement("canvas");
-    const scaleX = img.naturalWidth / img.width;
-    const scaleY = img.naturalHeight / img.height;
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // 先填白色背景（當圖片小於裁切框時會顯示白色）
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.drawImage(
-      img,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
       0,
       0,
-      canvas.width,
-      canvas.height
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
     );
 
     const isAvatar = cropTarget.type === "avatar";
@@ -545,13 +571,42 @@ export default function AdminPage() {
     }, "image/png");
   };
 
-  // 通用：選擇檔案後直接開啟裁切編輯器
+  // Skip Crop：直接上傳原始檔案不裁切
+  const skipCrop = async () => {
+    if (!cropRawFile || !cropTarget) return;
+    const isAvatar = cropTarget.type === "avatar";
+    const apiUrl = isAvatar ? "/api/avatars" : "/api/logos";
+    const formData = new FormData();
+    formData.append("file", cropRawFile);
+    const res = await fetch(apiUrl, { method: "POST", body: formData });
+    const data = await res.json();
+    if (data.path) {
+      switch (cropTarget.type) {
+        case "avatar":
+          updateAbout("avatar", data.path);
+          break;
+        case "experienceLogo":
+          updateExperience(cropTarget.id, "logo", data.path);
+          break;
+        case "educationLogo":
+          updateEducation(cropTarget.id, "logo", data.path);
+          break;
+        case "awardImage":
+          updateAward(cropTarget.id, "image", data.path);
+          break;
+      }
+    }
+    cancelCrop();
+  };
+
+  // 通用：選擇檔案後開啟裁切編輯器
   const handleFileAndCrop = (
     e: React.ChangeEvent<HTMLInputElement>,
     target: typeof cropTarget
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setCropRawFile(file);
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.result) {
@@ -958,43 +1013,101 @@ export default function AdminPage() {
 
               {/* 通用 Crop Editor Modal（Avatar / Logo / Award） */}
               {cropSrc && (
-                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-                  <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 max-w-lg w-full space-y-4">
-                    <h3 className="text-lg font-semibold">
-                      {cropTarget?.type === "avatar" ? "Crop Avatar"
-                        : cropTarget?.type === "awardImage" ? "Crop Award Image"
-                        : "Crop Logo"}
-                    </h3>
-                    <p className="text-xs text-gray-500">Drag to select the area, then click Apply.</p>
-                    <div className="flex justify-center bg-black/30 rounded-xl overflow-hidden max-h-[60vh]">
-                      <ReactCrop
-                        crop={crop}
-                        onChange={(c) => setCrop(c)}
-                        onComplete={(c) => setCompletedCrop(c)}
-                        {...(cropTarget?.type === "avatar" ? { circularCrop: true, aspect: 1 } : {})}
-                      >
-                        <img
-                          ref={cropImgRef}
-                          src={cropSrc}
-                          alt="Crop source"
-                          className="max-h-[55vh] object-contain"
-                        />
-                      </ReactCrop>
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[95vh]">
+                    {/* Header */}
+                    <div className="px-6 pt-5 pb-3 border-b border-gray-100">
+                      <h3 className="text-lg font-semibold">
+                        {cropTarget?.type === "avatar" ? "Crop Avatar"
+                          : cropTarget?.type === "awardImage" ? "Crop Award Image"
+                          : "Crop Logo"}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1">Drag to move · Scroll to zoom · Choose aspect ratio below</p>
                     </div>
-                    <div className="flex justify-end gap-3">
+
+                    {/* 比例選擇器 */}
+                    <div className="px-6 py-3 flex items-center gap-2 flex-wrap border-b border-gray-100">
+                      <span className="text-xs text-gray-500 mr-1">Aspect:</span>
+                      {[
+                        { label: "1:1", value: 1 },
+                        { label: "16:9", value: 16 / 9 },
+                        { label: "9:16", value: 9 / 16 },
+                        { label: "4:3", value: 4 / 3 },
+                        { label: "3:4", value: 3 / 4 },
+                      ].map((opt) => (
+                        <button
+                          key={opt.label}
+                          onClick={() => setCropAspect(opt.value)}
+                          className={`px-3 py-1 text-xs rounded-full border transition-all ${
+                            Math.abs(cropAspect - opt.value) < 0.01
+                              ? "bg-gray-900 text-white border-gray-900"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Cropper 區域 */}
+                    <div className="relative flex-1 min-h-[300px] bg-gray-900">
+                      <Cropper
+                        image={cropSrc}
+                        crop={cropPosition}
+                        zoom={cropZoom}
+                        aspect={cropAspect}
+                        onCropChange={setCropPosition}
+                        onZoomChange={setCropZoom}
+                        onCropComplete={onCropComplete}
+                        showGrid={true}
+                        cropShape={cropTarget?.type === "avatar" ? "round" : "rect"}
+                        style={{
+                          containerStyle: { background: "#1a1a1a" },
+                          mediaStyle: {},
+                          cropAreaStyle: {},
+                        }}
+                      />
+                    </div>
+
+                    {/* Zoom 滑桿 */}
+                    <div className="px-6 py-3 flex items-center gap-3 border-t border-gray-100">
+                      <span className="text-xs text-gray-500 w-10">Zoom</span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={3}
+                        step={0.01}
+                        value={cropZoom}
+                        onChange={(e) => setCropZoom(Number(e.target.value))}
+                        className="flex-1 h-1.5 accent-gray-700"
+                      />
+                      <span className="text-xs text-gray-400 w-10 text-right">{cropZoom.toFixed(1)}x</span>
+                    </div>
+
+                    {/* 底部按鈕 */}
+                    <div className="px-6 pb-5 pt-2 flex justify-between items-center">
                       <button
                         onClick={cancelCrop}
                         className="px-4 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
                       >
                         Cancel
                       </button>
-                      <button
-                        onClick={applyCrop}
-                        disabled={!completedCrop}
-                        className="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-30 font-medium"
-                      >
-                        Apply Crop
-                      </button>
+                      <div className="flex gap-3">
+                        {cropRawFile && (
+                          <button
+                            onClick={skipCrop}
+                            className="px-4 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
+                          >
+                            Skip Crop
+                          </button>
+                        )}
+                        <button
+                          onClick={applyCrop}
+                          className="px-5 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors font-medium"
+                        >
+                          Apply
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -637,7 +637,7 @@ export default function Home() {
                   >
                     <span className="gradient-text">Awards</span>
                   </motion.h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-2 gap-6">
                     {about.awards.map((award) => (
                       <motion.a
                         key={award.id}
@@ -648,16 +648,20 @@ export default function Home() {
                         transition={{ duration: 0.5 }}
                         className="glass rounded-2xl overflow-hidden group hover:shadow-lg transition-shadow block"
                       >
-                        {award.image && (
-                          <div className="aspect-[4/3] overflow-hidden">
+                        <div className="aspect-[16/9] overflow-hidden bg-gray-100">
+                          {award.image ? (
                             <img
                               src={award.image}
                               alt={award.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               loading="lazy"
                             />
-                          </div>
-                        )}
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <AwardIcon className="w-10 h-10 text-gray-300" />
+                            </div>
+                          )}
+                        </div>
                         <div className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <AwardIcon className="w-4 h-4 text-gray-500" />

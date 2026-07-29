@@ -199,7 +199,20 @@
     "phone": "+886988663539",
     "behanceUrl": "",
     "linkedinUrl": "",
-    "awards": []
+    "awards": [
+      {
+        "id": "award-1785311419716",
+        "title": "iF Design Award 2025",
+        "image": "",
+        "link": "https://ifdesign.com/en/winner-ranking/project/prodirect/688266"
+      },
+      {
+        "id": "award-1785311457639",
+        "title": "Taiwan Excellence Award",
+        "image": "",
+        "link": "https://www.taiwanexcellence.org/en/award/product/1110492"
+      }
+    ]
   },
   "portfolio": {
     "title": "Portfolio",
