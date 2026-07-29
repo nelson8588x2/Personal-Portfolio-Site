@@ -110,18 +110,28 @@ export default function CVPage() {
           {/* ======== Header ======== */}
           <header className="mb-8 pb-6" style={{ borderBottom: "2px solid #111827" }}>
             <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight" style={{ color: "#111827", marginBottom: "4px" }}>
-                  {about.name}
-                </h1>
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 font-medium">
-                  {about.title}
-                </p>
-                {about.motto && (
-                  <p className="text-xs text-gray-400 italic mt-2" style={{ fontFamily: "'Georgia', serif" }}>
-                    {about.motto}
-                  </p>
+              <div className="flex items-center gap-5">
+                {about.avatar && (
+                  <img
+                    src={about.avatar}
+                    alt={about.name}
+                    className="rounded-full object-cover border border-gray-200 shrink-0"
+                    style={{ width: 72, height: 72 }}
+                  />
                 )}
+                <div>
+                  <h1 className="text-4xl font-bold tracking-tight" style={{ color: "#111827", marginBottom: "4px" }}>
+                    {about.name}
+                  </h1>
+                  <p className="text-sm uppercase tracking-[0.2em] text-gray-500 font-medium">
+                    {about.title}
+                  </p>
+                  {about.motto && (
+                    <p className="text-xs text-gray-400 italic mt-2" style={{ fontFamily: "'Georgia', serif" }}>
+                      {about.motto}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="text-right text-xs text-gray-500 space-y-1 mt-1">
                 {about.contactEmail && (
