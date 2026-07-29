@@ -520,16 +520,21 @@ export default function AdminPage() {
         setPdfProgress(`Error: ${data.error}`);
         return;
       }
-      // Set first page as cover, last as back cover, rest as content
+      // 第一頁為 front cover，最後一頁為 back cover，中間為 content pages
       const files = data.files as string[];
-      if (files.length >= 2) {
-        updatePortfolio("coverPage", files[0]);
-        updatePortfolio("backCoverPage", files[files.length - 1]);
-        updatePortfolio("contentPages", files.slice(1, -1));
-      } else if (files.length === 1) {
-        updatePortfolio("coverPage", files[0]);
-        updatePortfolio("contentPages", []);
-      }
+      setConfig((prev) => {
+        const newPortfolio = { ...prev.portfolio };
+        if (files.length >= 2) {
+          newPortfolio.coverPage = files[0];
+          newPortfolio.backCoverPage = files[files.length - 1];
+          newPortfolio.contentPages = files.slice(1, -1);
+        } else if (files.length === 1) {
+          newPortfolio.coverPage = files[0];
+          newPortfolio.backCoverPage = "";
+          newPortfolio.contentPages = [];
+        }
+        return { ...prev, portfolio: newPortfolio };
+      });
       setPdfProgress(`Done! ${data.totalPages} pages extracted.`);
     } catch {
       setPdfProgress("Upload failed.");
@@ -1306,7 +1311,7 @@ export default function AdminPage() {
                   <p className="text-sm">No pages yet. Import a PDF above.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {config.portfolio.contentPages.map((page, i) => (
                     <div
                       key={`${page}-${i}`}
@@ -1329,7 +1334,7 @@ export default function AdminPage() {
                       <img
                         src={page}
                         alt={`Page ${i + 1}`}
-                        className="w-full aspect-[210/297] object-cover"
+                        className="w-full aspect-[420/297] object-cover"
                         draggable={false}
                       />
                       <div className="absolute bottom-0 inset-x-0 bg-black/60 text-center py-0.5">

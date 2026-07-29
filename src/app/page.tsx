@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Linkedin, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { Mail, Linkedin, ArrowDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 // ============ Type Definitions ============
 
@@ -91,248 +91,35 @@ const staggerContainer = {
   },
 };
 
-// ============ PDF FlipBook Component ============
-// Front cover = cover-1.jpg → displayed on RIGHT side of spread
-// Back cover = cover-2.jpg → displayed on LEFT side of spread
-// Content pages are shown as two-page spreads (left + right)
-// 翻頁動畫：右頁以 3D rotateY 往左翻，背面顯示下一頁的左頁
+// ============ Portfolio Pages Component ============
+// 簡單的垂直捲動瀏覽，使用者只需往下滾動即可逐頁查看作品集
 
-function FlipBook({ portfolio }: { portfolio: PortfolioConfig }) {
-  const contentPages = portfolio.contentPages;
-  const totalSpreads = 1 + Math.ceil(contentPages.length / 2) + 1;
-  const [spread, setSpread] = useState(0);
-  const [flipping, setFlipping] = useState(false);
-  const [flipDir, setFlipDir] = useState<"next" | "prev" | null>(null);
-  const [pageInput, setPageInput] = useState("");
-  const [isEditingPage, setIsEditingPage] = useState(false);
-  const flipRef = useRef<HTMLDivElement>(null);
-
-  const goToSpread = (target: number) => {
-    const clamped = Math.max(0, Math.min(target, totalSpreads - 1));
-    if (clamped === spread) return;
-    if (clamped > spread) {
-      triggerFlip("next", clamped);
-    } else {
-      triggerFlip("prev", clamped);
-    }
-  };
-
-  const triggerFlip = (dir: "next" | "prev", target?: number) => {
-    if (flipping) return;
-    setFlipDir(dir);
-    setFlipping(true);
-    setTimeout(() => {
-      setSpread(target !== undefined ? target : (s) => dir === "next" ? s + 1 : s - 1);
-      setFlipping(false);
-      setFlipDir(null);
-    }, 600);
-  };
-
-  const nextSpread = () => {
-    if (spread < totalSpreads - 1 && !flipping) triggerFlip("next", spread + 1);
-  };
-
-  const prevSpread = () => {
-    if (spread > 0 && !flipping) triggerFlip("prev", spread - 1);
-  };
-
-  // Get left/right image sources for a given spread index
-  const getSpreadImages = (s: number): { left: string | null; right: string | null } => {
-    if (s === 0) return { left: null, right: portfolio.coverPage };
-    if (s === totalSpreads - 1) return { left: portfolio.backCoverPage, right: null };
-    const leftIdx = (s - 1) * 2;
-    const rightIdx = leftIdx + 1;
-    return {
-      left: contentPages[leftIdx] || null,
-      right: rightIdx < contentPages.length ? contentPages[rightIdx] : null,
-    };
-  };
-
-  const current = getSpreadImages(spread);
-  const nextData = spread < totalSpreads - 1 ? getSpreadImages(spread + 1) : null;
-  const prevData = spread > 0 ? getSpreadImages(spread - 1) : null;
-
-  const renderPageImg = (src: string | null, alt: string) =>
-    src ? (
-      <img src={src} alt={alt} className="w-full h-full object-contain bg-white" draggable={false} />
-    ) : (
-      <div className="w-full h-full bg-gray-100" />
-    );
-
-  const getPageLabel = () => {
-    if (spread === 0) return "Cover";
-    if (spread === totalSpreads - 1) return "Back Cover";
-    const left = (spread - 1) * 2 + 1;
-    const right = Math.min((spread - 1) * 2 + 2, contentPages.length);
-    return `${left}–${right} / ${contentPages.length}`;
-  };
-
-  const handlePageSubmit = () => {
-    setIsEditingPage(false);
-    const val = parseInt(pageInput, 10);
-    if (isNaN(val)) return;
-    if (val <= 0) goToSpread(0);
-    else if (val > contentPages.length) goToSpread(totalSpreads - 1);
-    else goToSpread(Math.ceil(val / 2));
-  };
-
-  // 計算翻頁動畫 style
-  const getFlipStyle = (): React.CSSProperties => {
-    if (!flipping || !flipDir) return { transform: "rotateY(0deg)" };
-    if (flipDir === "next") {
-      return { transform: "rotateY(-180deg)", transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)" };
-    }
-    return { transform: "rotateY(0deg)", transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)" };
-  };
-
-  const getFlipInitialStyle = (): React.CSSProperties => {
-    if (flipDir === "prev") {
-      return { transform: "rotateY(-180deg)" };
-    }
-    return { transform: "rotateY(0deg)" };
-  };
+function PortfolioPages({ portfolio }: { portfolio: PortfolioConfig }) {
+  const allPages = [
+    portfolio.coverPage,
+    ...portfolio.contentPages,
+    portfolio.backCoverPage,
+  ].filter(Boolean);
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      {/* Book container */}
-      <div
-        className="relative w-full max-w-5xl rounded-2xl overflow-hidden shadow-lg"
-        style={{ aspectRatio: "420/297" }}
-      >
-        {/* Static left page (stays in place during flip) */}
-        <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden">
-          {flipDir === "next"
-            ? renderPageImg(current.left, "Left page")
-            : flipDir === "prev" && prevData
-            ? renderPageImg(prevData.left, "Left page")
-            : renderPageImg(current.left, "Left page")
-          }
-        </div>
-
-        {/* Static right page — shows destination right page underneath during flip */}
-        <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
-          {flipDir === "next" && nextData
-            ? renderPageImg(nextData.right, "Right page")
-            : flipDir === "prev"
-            ? renderPageImg(current.right, "Right page")
-            : renderPageImg(current.right, "Right page")
-          }
-        </div>
-
-        {/* Underneath left page (new left revealed during next flip) */}
-        {flipDir === "next" && nextData && (
-          <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden" style={{ zIndex: 5 }}>
-            {renderPageImg(nextData.left, "New left page")}
-          </div>
-        )}
-
-        {/* Underneath right page (old right revealed during prev flip) */}
-        {flipDir === "prev" && (
-          <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden" style={{ zIndex: 5 }}>
-            {renderPageImg(current.right, "Old right page")}
-          </div>
-        )}
-
-        {/* 3D flipping page */}
-        {flipping && flipDir === "next" && (
-          <div className="flip-container" style={{ left: "50%", transformOrigin: "left center" }}>
-            <div
-              ref={flipRef}
-              className="flip-page"
-              style={{
-                ...getFlipInitialStyle(),
-                ...getFlipStyle(),
-                transformOrigin: "left center",
-              }}
-            >
-              {/* Front face = old right page */}
-              <div className="absolute inset-0 overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
-                {renderPageImg(current.right, "Flipping front")}
-              </div>
-              {/* Back face = new left page */}
-              <div className="flip-page-back overflow-hidden">
-                {renderPageImg(nextData?.left || null, "Flipping back")}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {flipping && flipDir === "prev" && prevData && (
-          <div className="flip-container" style={{ left: 0, transformOrigin: "right center" }}>
-            <div
-              className="flip-page"
-              style={{
-                ...getFlipInitialStyle(),
-                ...getFlipStyle(),
-                transformOrigin: "right center",
-                right: "auto",
-                left: 0,
-              }}
-            >
-              {/* Front face = old left page (currently showing) */}
-              <div className="absolute inset-0 overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
-                {renderPageImg(current.left, "Flipping front")}
-              </div>
-              {/* Back face = prev right page */}
-              <div className="flip-page-back overflow-hidden">
-                {renderPageImg(prevData.right, "Flipping back")}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Page Navigation */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={prevSpread}
-          disabled={spread === 0 || flipping}
-          aria-label="Previous page"
-          className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+    <div className="flex flex-col items-center gap-4">
+      {allPages.map((page, i) => (
+        <motion.div
+          key={`page-${i}`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-4xl"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </button>
-
-        {isEditingPage ? (
-          <form
-            onSubmit={(e) => { e.preventDefault(); handlePageSubmit(); }}
-            className="flex items-center gap-1"
-          >
-            <input
-              type="text"
-              value={pageInput}
-              onChange={(e) => setPageInput(e.target.value)}
-              onBlur={handlePageSubmit}
-              autoFocus
-              className="w-16 text-center text-sm bg-gray-50 border border-gray-300 rounded-md px-2 py-1 text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
-              placeholder="Page"
-            />
-            <span className="text-sm text-gray-500">/ {contentPages.length}</span>
-          </form>
-        ) : (
-          <button
-            onClick={() => {
-              setIsEditingPage(true);
-              if (spread === 0) setPageInput("0");
-              else if (spread === totalSpreads - 1) setPageInput(String(contentPages.length));
-              else setPageInput(String((spread - 1) * 2 + 1));
-            }}
-            className="text-sm text-gray-500 min-w-[120px] text-center hover:text-gray-800 transition-colors cursor-text"
-            title="Click to jump to a page"
-          >
-            {getPageLabel()}
-          </button>
-        )}
-
-        <button
-          onClick={nextSpread}
-          disabled={spread === totalSpreads - 1 || flipping}
-          aria-label="Next page"
-          className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </button>
-      </div>
+          <img
+            src={page}
+            alt={`Page ${i + 1}`}
+            className="w-full h-auto rounded-lg shadow-md"
+            loading="lazy"
+          />
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -744,7 +531,7 @@ export default function Home() {
 
       {/* ============ WORKS Section ============ */}
       <div id="works">
-          {/* PDF FlipBook */}
+          {/* Portfolio Pages */}
           <section className="py-24 px-6">
             <div className="max-w-5xl mx-auto">
               <motion.div
@@ -770,7 +557,7 @@ export default function Home() {
                   </motion.p>
                 )}
                 <motion.div variants={fadeInUp} transition={{ duration: 0.6 }}>
-                  {portfolio.contentPages.length > 0 && <FlipBook portfolio={portfolio} />}
+                  {portfolio.contentPages.length > 0 && <PortfolioPages portfolio={portfolio} />}
                 </motion.div>
               </motion.div>
             </div>

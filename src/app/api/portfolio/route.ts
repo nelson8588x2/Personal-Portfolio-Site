@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 import sharp from "sharp";
 
 // Upload PDF and split into page images
@@ -20,11 +21,25 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const pdfBuffer = Buffer.from(arrayBuffer);
 
-    // Dynamic import pdfjs-dist to avoid SSR issues
-    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    // 使用 file:// URL 以原生 ESM 方式載入 pdfjs，繞過 webpack 打包
+    // 避免 webpack 產生的副本與原生模組不同步，導致 workerSrc 設定失效
+    const pdfjsUrl = pathToFileURL(
+      path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.mjs")
+    ).href;
+    const workerUrl = pathToFileURL(
+      path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")
+    ).href;
+
+    const pdfjsLib = await import(/* webpackIgnore: true */ pdfjsUrl);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
     // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) });
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    } as any);
     const pdfDoc = await loadingTask.promise;
     const totalPages = pdfDoc.numPages;
 
@@ -38,13 +53,12 @@ export async function POST(req: NextRequest) {
       const width = Math.floor(viewport.width);
       const height = Math.floor(viewport.height);
 
-      // Create canvas using the 'canvas' package
-      const { createCanvas } = await import("canvas");
+      // 使用 @napi-rs/canvas 建立畫布（與 pdfjs v5 內部實作一致，避免混用衝突）
+      const { createCanvas } = await import("@napi-rs/canvas");
       const canvas = createCanvas(width, height);
       const ctx = canvas.getContext("2d");
 
       // Render PDF page to canvas
-      // @ts-expect-error - pdfjs-dist types don't match canvas types exactly
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       // Convert canvas to PNG buffer, then to JPG with sharp
