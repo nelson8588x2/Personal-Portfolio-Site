@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Linkedin, ArrowDown } from "lucide-react";
+import { Mail, Linkedin, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 // ============ Type Definitions ============
@@ -92,7 +92,7 @@ const staggerContainer = {
 };
 
 // ============ Portfolio Pages Component ============
-// 簡單的垂直捲動瀏覽，使用者只需往下滾動即可逐頁查看作品集
+// 書籍風格的左右翻頁瀏覽，帶有頁碼和上/下一頁按鈕
 
 function PortfolioPages({ portfolio }: { portfolio: PortfolioConfig }) {
   const allPages = [
@@ -101,25 +101,82 @@ function PortfolioPages({ portfolio }: { portfolio: PortfolioConfig }) {
     portfolio.backCoverPage,
   ].filter(Boolean);
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const totalPages = allPages.length;
+
+  const goToPrev = () => setCurrentPage((p) => Math.max(0, p - 1));
+  const goToNext = () => setCurrentPage((p) => Math.min(totalPages - 1, p + 1));
+
+  // 鍵盤左右鍵翻頁
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") goToPrev();
+      if (e.key === "ArrowRight") goToNext();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  if (totalPages === 0) return null;
+
   return (
-    <div className="flex flex-col items-center gap-4">
-      {allPages.map((page, i) => (
-        <motion.div
-          key={`page-${i}`}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-4xl"
+    <div className="relative w-full max-w-5xl mx-auto">
+      {/* 書籍容器 */}
+      <div className="relative bg-gray-900 rounded-xl shadow-2xl overflow-hidden aspect-[420/297]">
+        {/* 當前頁面 */}
+        <motion.img
+          key={currentPage}
+          src={allPages[currentPage]}
+          alt={`Page ${currentPage + 1}`}
+          className="absolute inset-0 w-full h-full object-contain"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        />
+
+        {/* 左側翻頁按鈕 */}
+        {currentPage > 0 && (
+          <button
+            onClick={goToPrev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/80 hover:bg-black/70 hover:text-white transition-all backdrop-blur-sm"
+            aria-label="上一頁"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* 右側翻頁按鈕 */}
+        {currentPage < totalPages - 1 && (
+          <button
+            onClick={goToNext}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/80 hover:bg-black/70 hover:text-white transition-all backdrop-blur-sm"
+            aria-label="下一頁"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {/* 頁碼 */}
+      <div className="flex items-center justify-center gap-4 mt-4">
+        <button
+          onClick={goToPrev}
+          disabled={currentPage === 0}
+          className="px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <img
-            src={page}
-            alt={`Page ${i + 1}`}
-            className="w-full h-auto rounded-lg shadow-md"
-            loading="lazy"
-          />
-        </motion.div>
-      ))}
+          <ChevronLeft className="w-4 h-4 inline" /> Prev
+        </button>
+        <span className="text-sm text-gray-600">
+          {currentPage + 1} / {totalPages}
+        </span>
+        <button
+          onClick={goToNext}
+          disabled={currentPage === totalPages - 1}
+          className="px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          Next <ChevronRight className="w-4 h-4 inline" />
+        </button>
+      </div>
     </div>
   );
 }
