@@ -20,6 +20,24 @@ export async function GET() {
   }
 }
 
+// 清理檔名：移除特殊字元，保留原始名稱
+function sanitizeFilename(name: string): string {
+  return name.replace(/[^a-zA-Z0-9_\-().]/g, "_");
+}
+
+// 取得不重複的檔案路徑
+function getUniqueFilepath(dir: string, basename: string, ext: string): { filename: string; filepath: string } {
+  let filename = `${basename}.${ext}`;
+  let filepath = path.join(dir, filename);
+  let counter = 2;
+  while (fs.existsSync(filepath)) {
+    filename = `${basename}_${counter}.${ext}`;
+    filepath = path.join(dir, filename);
+    counter++;
+  }
+  return { filename, filepath };
+}
+
 // Save cropped avatar image
 export async function POST(req: NextRequest) {
   try {
@@ -32,8 +50,14 @@ export async function POST(req: NextRequest) {
     fs.mkdirSync(avatarsDir, { recursive: true });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `avatar-cropped-${Date.now()}.png`;
-    const filepath = path.join(avatarsDir, filename);
+
+    // 保留原始檔名
+    const rawName = file.name || "avatar.png";
+    const dotIndex = rawName.lastIndexOf(".");
+    const ext = dotIndex > 0 ? rawName.slice(dotIndex + 1).toLowerCase() : "png";
+    const baseName = sanitizeFilename(dotIndex > 0 ? rawName.slice(0, dotIndex) : rawName);
+
+    const { filename, filepath } = getUniqueFilepath(avatarsDir, baseName, ext);
     fs.writeFileSync(filepath, buffer);
 
     return NextResponse.json({ path: `/avatars/${filename}` });

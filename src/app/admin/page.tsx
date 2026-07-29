@@ -508,74 +508,38 @@ export default function AdminPage() {
     setCroppedAreaPixels(croppedPixels);
   }, []);
 
-  // 將裁切區域繪製到 canvas 並上傳
-  const applyCrop = async () => {
-    if (!croppedAreaPixels || !cropSrc || !cropTarget) return;
-
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = cropSrc;
-    await new Promise((resolve) => { image.onload = resolve; });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = croppedAreaPixels.width;
-    canvas.height = croppedAreaPixels.height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // 先填白色背景（當圖片小於裁切框時會顯示白色）
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.drawImage(
-      image,
-      croppedAreaPixels.x,
-      croppedAreaPixels.y,
-      croppedAreaPixels.width,
-      croppedAreaPixels.height,
-      0,
-      0,
-      croppedAreaPixels.width,
-      croppedAreaPixels.height
-    );
-
-    const isAvatar = cropTarget.type === "avatar";
-    const apiUrl = isAvatar ? "/api/avatars" : "/api/logos";
-    const filename = isAvatar ? "avatar-cropped.png" : "cropped.png";
-
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const formData = new FormData();
-      formData.append("file", blob, filename);
-      const res = await fetch(apiUrl, { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.path) {
-        switch (cropTarget.type) {
-          case "avatar":
-            updateAbout("avatar", data.path);
-            break;
-          case "experienceLogo":
-            updateExperience(cropTarget.id, "logo", data.path);
-            break;
-          case "educationLogo":
-            updateEducation(cropTarget.id, "logo", data.path);
-            break;
-          case "awardImage":
-            updateAward(cropTarget.id, "image", data.path);
-            break;
-        }
-      }
-      cancelCrop();
-    }, "image/png");
+  // 根據 cropTarget 取得上傳用的 category
+  const getCropCategory = (target: typeof cropTarget): string => {
+    if (!target) return "";
+    switch (target.type) {
+      case "experienceLogo": return "experience";
+      case "educationLogo": return "education";
+      case "awardImage": return "award";
+      default: return "";
+    }
   };
 
-  // Skip Crop：直接上傳原始檔案不裁切
-  const skipCrop = async () => {
-    if (!cropRawFile || !cropTarget) return;
+  // 根據 cropTarget 取得原始檔名（用於上傳時保留名稱）
+  const getCropFilename = (): string => {
+    if (cropRawFile) {
+      const rawName = cropRawFile.name;
+      const dotIdx = rawName.lastIndexOf(".");
+      const base = dotIdx > 0 ? rawName.slice(0, dotIdx) : rawName;
+      return `${base}.png`; // 裁切後統一輸出 PNG
+    }
+    return "cropped.png";
+  };
+
+  // 上傳裁切/跳過裁切後的結果並更新對應欄位
+  const uploadAndApply = async (blob: Blob, filename: string) => {
+    if (!cropTarget) return;
     const isAvatar = cropTarget.type === "avatar";
     const apiUrl = isAvatar ? "/api/avatars" : "/api/logos";
     const formData = new FormData();
-    formData.append("file", cropRawFile);
+    formData.append("file", blob, filename);
+    if (!isAvatar) {
+      formData.append("category", getCropCategory(cropTarget));
+    }
     const res = await fetch(apiUrl, { method: "POST", body: formData });
     const data = await res.json();
     if (data.path) {
@@ -595,6 +559,51 @@ export default function AdminPage() {
       }
     }
     cancelCrop();
+  };
+
+  // 將裁切區域繪製到 canvas 並上傳
+  const applyCrop = async () => {
+    if (!croppedAreaPixels || !cropSrc || !cropTarget) return;
+
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.src = cropSrc;
+    await new Promise((resolve) => { image.onload = resolve; });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // 先填白色背景（當圖片小於裁切框時會顯示白色）
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 處理 zoom < 1 的情況：croppedAreaPixels 可能有負的 x/y（圖片小於框）
+    const sx = Math.max(0, croppedAreaPixels.x);
+    const sy = Math.max(0, croppedAreaPixels.y);
+    const dx = Math.max(0, -croppedAreaPixels.x);
+    const dy = Math.max(0, -croppedAreaPixels.y);
+    const sw = Math.min(image.naturalWidth - sx, croppedAreaPixels.width - dx);
+    const sh = Math.min(image.naturalHeight - sy, croppedAreaPixels.height - dy);
+
+    if (sw > 0 && sh > 0) {
+      ctx.drawImage(image, sx, sy, sw, sh, dx, dy, sw, sh);
+    }
+
+    const filename = cropTarget.type === "avatar" ? "avatar-cropped.png" : getCropFilename();
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      await uploadAndApply(blob, filename);
+    }, "image/png");
+  };
+
+  // Skip Crop：直接上傳原始檔案不裁切
+  const skipCrop = async () => {
+    if (!cropRawFile || !cropTarget) return;
+    await uploadAndApply(cropRawFile, cropRawFile.name);
   };
 
   // 通用：選擇檔案後開啟裁切編輯器
