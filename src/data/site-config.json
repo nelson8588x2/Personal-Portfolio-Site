@@ -130,21 +130,27 @@
         "period": "2022/7 — Present",
         "role": "Senior Industrial Designer",
         "company": "Compal Electronics, Inc.",
-        "desc": "Focused on laptop ODM design and development, driving innovative product design."
+        "desc": "Focused on laptop ODM design and development, driving innovative product design.",
+        "logo": "",
+        "logoSize": 28
       },
       {
         "id": "exp-2",
         "period": "2021/7 — 2022/6",
         "role": "Industrial Designer",
         "company": "Aeonmotor Co., Ltd.",
-        "desc": "Completed the Croxera M smart rearview mirror project; raised NT$2.6M on Zeczec crowdfunding."
+        "desc": "Completed the Croxera M smart rearview mirror project; raised NT$2.6M on Zeczec crowdfunding.",
+        "logo": "",
+        "logoSize": 28
       },
       {
         "id": "exp-3",
         "period": "2019/9 — 2020/8",
         "role": "Industrial Designer (Full-time Intern)",
         "company": "Compal Electronics, Inc.",
-        "desc": "Developed the Taiwan Excellence Award-winning SHENNONA hearing aid charging case."
+        "desc": "Developed the Taiwan Excellence Award-winning SHENNONA hearing aid charging case.",
+        "logo": "",
+        "logoSize": 28
       }
     ],
     "skillGroups": [
@@ -184,12 +190,16 @@
         "id": "edu-1",
         "school": "National Cheng Kung University",
         "degree": "B.S. in Industrial Design",
-        "period": "2016/9 — 2021/6"
+        "period": "2016/9 — 2021/6",
+        "logo": "",
+        "logoSize": 28
       }
     ],
     "contactEmail": "nelson8588x2@gmail.com",
+    "phone": "+886988663539",
     "behanceUrl": "",
-    "linkedinUrl": ""
+    "linkedinUrl": "",
+    "awards": []
   },
   "portfolio": {
     "title": "Portfolio",

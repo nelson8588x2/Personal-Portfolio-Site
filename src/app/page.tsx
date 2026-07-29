@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Linkedin, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Mail, Linkedin, ArrowDown, ChevronLeft, ChevronRight, Phone, ExternalLink, Award as AwardIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 // ============ Type Definitions ============
@@ -26,6 +26,8 @@ interface Experience {
   role: string;
   company: string;
   desc: string;
+  logo?: string;
+  logoSize?: number;
 }
 
 interface SkillGroup {
@@ -39,6 +41,15 @@ interface Education {
   school: string;
   degree: string;
   period: string;
+  logo?: string;
+  logoSize?: number;
+}
+
+interface Award {
+  id: string;
+  title: string;
+  image: string;
+  link: string;
 }
 
 interface AboutMe {
@@ -52,8 +63,10 @@ interface AboutMe {
   skillGroups: SkillGroup[];
   education: Education[];
   contactEmail: string;
+  phone: string;
   behanceUrl: string;
   linkedinUrl: string;
+  awards: Award[];
 }
 
 interface PortfolioConfig {
@@ -202,8 +215,10 @@ const defaultAboutMe: AboutMe = {
   skillGroups: [],
   education: [],
   contactEmail: "",
+  phone: "",
   behanceUrl: "",
   linkedinUrl: "",
+  awards: [],
 };
 
 export default function Home() {
@@ -493,7 +508,17 @@ export default function Home() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {exp.role}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3">{exp.company}</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        {exp.logo && (
+                          <img
+                            src={exp.logo}
+                            alt={exp.company}
+                            style={{ height: exp.logoSize || 28 }}
+                            className="object-contain"
+                          />
+                        )}
+                        <p className="text-gray-600 text-sm">{exp.company}</p>
+                      </div>
                       <p className="text-gray-500 text-sm">{exp.desc}</p>
                     </motion.div>
                   ))}
@@ -547,7 +572,7 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Education & Certifications */}
+          {/* Education */}
           <section className="py-24 px-6">
             <div className="max-w-4xl mx-auto">
               <motion.div
@@ -561,7 +586,7 @@ export default function Home() {
                   transition={{ duration: 0.6 }}
                   className="text-3xl md:text-4xl font-bold mb-12"
                 >
-                  <span className="gradient-text">Education & Certifications</span>
+                  <span className="gradient-text">Education</span>
                 </motion.h2>
                 <div className="grid md:grid-cols-2 gap-6">
                   {about.education.map((edu) => (
@@ -571,9 +596,19 @@ export default function Home() {
                       transition={{ duration: 0.5 }}
                       className="glass rounded-2xl p-6"
                     >
-                      <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                        {edu.school}
-                      </h3>
+                      <div className="flex items-center gap-3 mb-2">
+                        {edu.logo && (
+                          <img
+                            src={edu.logo}
+                            alt={edu.school}
+                            style={{ height: edu.logoSize || 28 }}
+                            className="object-contain"
+                          />
+                        )}
+                        <h3 className="font-semibold text-lg text-gray-900">
+                          {edu.school}
+                        </h3>
+                      </div>
                       <p className="text-gray-600 text-sm mb-1">
                         {edu.degree}
                       </p>
@@ -584,6 +619,61 @@ export default function Home() {
               </motion.div>
             </div>
           </section>
+
+          {/* Awards */}
+          {about.awards && about.awards.length > 0 && (
+            <section className="py-24 px-6">
+              <div className="max-w-4xl mx-auto">
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={staggerContainer}
+                >
+                  <motion.h2
+                    variants={fadeInUp}
+                    transition={{ duration: 0.6 }}
+                    className="text-3xl md:text-4xl font-bold mb-12"
+                  >
+                    <span className="gradient-text">Awards</span>
+                  </motion.h2>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {about.awards.map((award) => (
+                      <motion.a
+                        key={award.id}
+                        href={award.link || "#"}
+                        target={award.link ? "_blank" : undefined}
+                        rel={award.link ? "noopener noreferrer" : undefined}
+                        variants={fadeInUp}
+                        transition={{ duration: 0.5 }}
+                        className="glass rounded-2xl overflow-hidden group hover:shadow-lg transition-shadow block"
+                      >
+                        {award.image && (
+                          <div className="aspect-[4/3] overflow-hidden">
+                            <img
+                              src={award.image}
+                              alt={award.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AwardIcon className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-800">{award.title}</span>
+                          </div>
+                          {award.link && (
+                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
+                          )}
+                        </div>
+                      </motion.a>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </section>
+          )}
       </div>
 
       {/* ============ WORKS Section ============ */}
@@ -746,19 +836,34 @@ export default function Home() {
             >
               Have an idea or question? Feel free to reach out.
             </motion.p>
-            {about.contactEmail && (
-              <motion.a
-                variants={fadeInUp}
-                transition={{ duration: 0.6 }}
-                href={`mailto:${about.contactEmail}`}
-                className="inline-flex items-center gap-3 glass rounded-2xl px-6 py-4 hover:bg-gray-100 transition-colors group mb-8"
-              >
-                <Mail className="w-5 h-5 text-gray-500 group-hover:text-gray-800 transition-colors" />
-                <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
-                  {about.contactEmail}
-                </span>
-              </motion.a>
-            )}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+              {about.contactEmail && (
+                <motion.a
+                  variants={fadeInUp}
+                  transition={{ duration: 0.6 }}
+                  href={`mailto:${about.contactEmail}`}
+                  className="inline-flex items-center gap-3 glass rounded-2xl px-6 py-4 hover:bg-gray-100 transition-colors group"
+                >
+                  <Mail className="w-5 h-5 text-gray-500 group-hover:text-gray-800 transition-colors" />
+                  <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
+                    {about.contactEmail}
+                  </span>
+                </motion.a>
+              )}
+              {about.phone && (
+                <motion.a
+                  variants={fadeInUp}
+                  transition={{ duration: 0.6 }}
+                  href={`tel:${about.phone}`}
+                  className="inline-flex items-center gap-3 glass rounded-2xl px-6 py-4 hover:bg-gray-100 transition-colors group"
+                >
+                  <Phone className="w-5 h-5 text-gray-500 group-hover:text-gray-800 transition-colors" />
+                  <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
+                    {about.phone}
+                  </span>
+                </motion.a>
+              )}
+            </div>
             <motion.div
               variants={fadeInUp}
               transition={{ duration: 0.6 }}

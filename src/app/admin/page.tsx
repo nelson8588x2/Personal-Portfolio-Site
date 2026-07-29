@@ -21,6 +21,7 @@ import {
   Upload,
   Palette,
   Rocket,
+  Link2,
 } from "lucide-react";
 
 // ============ Type Definitions ============
@@ -45,6 +46,8 @@ interface Experience {
   role: string;
   company: string;
   desc: string;
+  logo?: string;
+  logoSize?: number;
 }
 
 interface SkillGroup {
@@ -58,6 +61,15 @@ interface Education {
   school: string;
   degree: string;
   period: string;
+  logo?: string;
+  logoSize?: number;
+}
+
+interface Award {
+  id: string;
+  title: string;
+  image: string;
+  link: string;
 }
 
 interface AboutMe {
@@ -71,8 +83,10 @@ interface AboutMe {
   skillGroups: SkillGroup[];
   education: Education[];
   contactEmail: string;
+  phone: string;
   behanceUrl: string;
   linkedinUrl: string;
+  awards: Award[];
 }
 
 const defaultAboutMe: AboutMe = {
@@ -86,8 +100,10 @@ const defaultAboutMe: AboutMe = {
   skillGroups: [],
   education: [],
   contactEmail: "",
+  phone: "",
   behanceUrl: "",
   linkedinUrl: "",
+  awards: [],
 };
 
 interface PortfolioConfig {
@@ -138,6 +154,14 @@ export default function AdminPage() {
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const cropImgRef = useRef<HTMLImageElement | null>(null);
+  // 裁切目標：決定裁切後的圖片要上傳到哪裡、更新哪個欄位
+  const [cropTarget, setCropTarget] = useState<
+    | { type: "avatar" }
+    | { type: "experienceLogo"; id: string }
+    | { type: "educationLogo"; id: string }
+    | { type: "awardImage"; id: string }
+    | null
+  >(null);
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "projects" | "theme" | "settings">("projects");
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfProgress, setPdfProgress] = useState("");
@@ -449,22 +473,28 @@ export default function AdminPage() {
     });
   };
 
-  // ============ Avatar crop helpers ============
+  // ============ 通用裁切 helpers ============
 
-  const openCropEditor = (src: string) => {
+  const openCropEditor = (
+    src: string,
+    target: typeof cropTarget = { type: "avatar" }
+  ) => {
     setCropSrc(src);
+    setCropTarget(target);
     setCrop(undefined);
     setCompletedCrop(null);
   };
 
   const cancelCrop = () => {
     setCropSrc(null);
+    setCropTarget(null);
     setCrop(undefined);
     setCompletedCrop(null);
   };
 
+  // 根據 cropTarget 決定上傳 API 和更新的狀態欄位
   const applyCrop = async () => {
-    if (!completedCrop || !cropImgRef.current) return;
+    if (!completedCrop || !cropImgRef.current || !cropTarget) return;
     const img = cropImgRef.current;
     const canvas = document.createElement("canvas");
     const scaleX = img.naturalWidth / img.width;
@@ -484,17 +514,52 @@ export default function AdminPage() {
       canvas.width,
       canvas.height
     );
+
+    const isAvatar = cropTarget.type === "avatar";
+    const apiUrl = isAvatar ? "/api/avatars" : "/api/logos";
+    const filename = isAvatar ? "avatar-cropped.png" : "cropped.png";
+
     canvas.toBlob(async (blob) => {
       if (!blob) return;
       const formData = new FormData();
-      formData.append("file", blob, "avatar-cropped.png");
-      const res = await fetch("/api/avatars", { method: "POST", body: formData });
+      formData.append("file", blob, filename);
+      const res = await fetch(apiUrl, { method: "POST", body: formData });
       const data = await res.json();
       if (data.path) {
-        updateAbout("avatar", data.path);
+        switch (cropTarget.type) {
+          case "avatar":
+            updateAbout("avatar", data.path);
+            break;
+          case "experienceLogo":
+            updateExperience(cropTarget.id, "logo", data.path);
+            break;
+          case "educationLogo":
+            updateEducation(cropTarget.id, "logo", data.path);
+            break;
+          case "awardImage":
+            updateAward(cropTarget.id, "image", data.path);
+            break;
+        }
       }
       cancelCrop();
     }, "image/png");
+  };
+
+  // 通用：選擇檔案後直接開啟裁切編輯器
+  const handleFileAndCrop = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    target: typeof cropTarget
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result) {
+        openCropEditor(reader.result as string, target);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   // ============ Portfolio helpers ============
@@ -609,7 +674,7 @@ export default function AdminPage() {
   const addExperience = () => {
     updateAbout("experiences", [
       ...config.aboutMe.experiences,
-      { id: `exp-${Date.now()}`, period: "", role: "", company: "", desc: "" },
+      { id: `exp-${Date.now()}`, period: "", role: "", company: "", desc: "", logo: "", logoSize: 28 },
     ]);
   };
 
@@ -617,7 +682,7 @@ export default function AdminPage() {
     updateAbout("experiences", config.aboutMe.experiences.filter((e) => e.id !== id));
   };
 
-  const updateExperience = (id: string, field: keyof Experience, value: string) => {
+  const updateExperience = (id: string, field: keyof Experience, value: unknown) => {
     updateAbout(
       "experiences",
       config.aboutMe.experiences.map((e) => (e.id === id ? { ...e, [field]: value } : e))
@@ -645,7 +710,7 @@ export default function AdminPage() {
   const addEducation = () => {
     updateAbout("education", [
       ...config.aboutMe.education,
-      { id: `edu-${Date.now()}`, school: "", degree: "", period: "" },
+      { id: `edu-${Date.now()}`, school: "", degree: "", period: "", logo: "", logoSize: 28 },
     ]);
   };
 
@@ -653,10 +718,30 @@ export default function AdminPage() {
     updateAbout("education", config.aboutMe.education.filter((e) => e.id !== id));
   };
 
-  const updateEducation = (id: string, field: keyof Education, value: string) => {
+  const updateEducation = (id: string, field: keyof Education, value: unknown) => {
     updateAbout(
       "education",
       config.aboutMe.education.map((e) => (e.id === id ? { ...e, [field]: value } : e))
+    );
+  };
+
+  // ============ Awards ============
+
+  const addAward = () => {
+    updateAbout("awards", [
+      ...(config.aboutMe.awards || []),
+      { id: `award-${Date.now()}`, title: "", image: "", link: "" },
+    ]);
+  };
+
+  const removeAward = (id: string) => {
+    updateAbout("awards", (config.aboutMe.awards || []).filter((a) => a.id !== id));
+  };
+
+  const updateAward = (id: string, field: keyof Award, value: string) => {
+    updateAbout(
+      "awards",
+      (config.aboutMe.awards || []).map((a) => (a.id === id ? { ...a, [field]: value } : a))
     );
   };
 
@@ -815,7 +900,7 @@ export default function AdminPage() {
                     {config.aboutMe.avatar && (
                       <>
                         <button
-                          onClick={() => openCropEditor(config.aboutMe.avatar)}
+                          onClick={() => openCropEditor(config.aboutMe.avatar, { type: "avatar" })}
                           className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
                         >
                           Crop
@@ -849,7 +934,7 @@ export default function AdminPage() {
                             onClick={() => {
                               updateAbout("avatar", `/avatars/${file}`);
                               setShowAvatarPicker(false);
-                              openCropEditor(`/avatars/${file}`);
+                              openCropEditor(`/avatars/${file}`, { type: "avatar" });
                             }}
                             className={`rounded-lg overflow-hidden border-2 transition-all ${
                               config.aboutMe.avatar === `/avatars/${file}`
@@ -869,47 +954,51 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {/* Crop Editor Modal */}
-                {cropSrc && (
-                  <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-                    <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 max-w-lg w-full space-y-4">
-                      <h3 className="text-lg font-semibold">Crop Avatar</h3>
-                      <p className="text-xs text-gray-500">Drag to select the area, then click Apply.</p>
-                      <div className="flex justify-center bg-black/30 rounded-xl overflow-hidden max-h-[60vh]">
-                        <ReactCrop
-                          crop={crop}
-                          onChange={(c) => setCrop(c)}
-                          onComplete={(c) => setCompletedCrop(c)}
-                          circularCrop
-                          aspect={1}
-                        >
-                          <img
-                            ref={cropImgRef}
-                            src={cropSrc}
-                            alt="Crop source"
-                            className="max-h-[55vh] object-contain"
-                          />
-                        </ReactCrop>
-                      </div>
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={cancelCrop}
-                          className="px-4 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={applyCrop}
-                          disabled={!completedCrop}
-                          className="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-30 font-medium"
-                        >
-                          Apply Crop
-                        </button>
-                      </div>
+              </div>
+
+              {/* 通用 Crop Editor Modal（Avatar / Logo / Award） */}
+              {cropSrc && (
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+                  <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 max-w-lg w-full space-y-4">
+                    <h3 className="text-lg font-semibold">
+                      {cropTarget?.type === "avatar" ? "Crop Avatar"
+                        : cropTarget?.type === "awardImage" ? "Crop Award Image"
+                        : "Crop Logo"}
+                    </h3>
+                    <p className="text-xs text-gray-500">Drag to select the area, then click Apply.</p>
+                    <div className="flex justify-center bg-black/30 rounded-xl overflow-hidden max-h-[60vh]">
+                      <ReactCrop
+                        crop={crop}
+                        onChange={(c) => setCrop(c)}
+                        onComplete={(c) => setCompletedCrop(c)}
+                        {...(cropTarget?.type === "avatar" ? { circularCrop: true, aspect: 1 } : {})}
+                      >
+                        <img
+                          ref={cropImgRef}
+                          src={cropSrc}
+                          alt="Crop source"
+                          className="max-h-[55vh] object-contain"
+                        />
+                      </ReactCrop>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={cancelCrop}
+                        className="px-4 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={applyCrop}
+                        disabled={!completedCrop}
+                        className="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-30 font-medium"
+                      >
+                        Apply Crop
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Name */}
               <div>
@@ -961,7 +1050,7 @@ export default function AdminPage() {
               </div>
 
               {/* Contact Links */}
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Email</label>
                   <input
@@ -970,6 +1059,16 @@ export default function AdminPage() {
                     onChange={(e) => updateAbout("contactEmail", e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
                     placeholder="hello@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Phone</label>
+                  <input
+                    type="tel"
+                    value={config.aboutMe.phone || ""}
+                    onChange={(e) => updateAbout("phone", e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
+                    placeholder="+886912345678"
                   />
                 </div>
                 <div>
@@ -1073,6 +1172,46 @@ export default function AdminPage() {
                     className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
                     placeholder="Company name"
                   />
+                  {/* Logo：Choose → Crop → Remove */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs text-gray-500">Logo</span>
+                    {exp.logo && (
+                      <img src={exp.logo} alt="logo" style={{ height: exp.logoSize || 28 }} className="object-contain" />
+                    )}
+                    <div className="flex items-center gap-2">
+                      <label className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+                        Choose
+                        <input type="file" accept="image/*" onChange={(e) => handleFileAndCrop(e, { type: "experienceLogo", id: exp.id })} className="hidden" />
+                      </label>
+                      {exp.logo && (
+                        <>
+                          <button
+                            onClick={() => openCropEditor(exp.logo!, { type: "experienceLogo", id: exp.id })}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                          >
+                            Crop
+                          </button>
+                          <button
+                            onClick={() => updateExperience(exp.id, "logo", "")}
+                            className="px-3 py-1.5 text-xs rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {exp.logo && (
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500">Size</label>
+                        <input
+                          type="range" min="16" max="64" value={exp.logoSize || 28}
+                          onChange={(e) => updateExperience(exp.id, "logoSize", Number(e.target.value))}
+                          className="w-24 h-1 accent-gray-600"
+                        />
+                        <span className="text-xs text-gray-400">{exp.logoSize || 28}px</span>
+                      </div>
+                    )}
+                  </div>
                   <textarea
                     value={exp.desc}
                     onChange={(e) => updateExperience(exp.id, "desc", e.target.value)}
@@ -1137,7 +1276,7 @@ export default function AdminPage() {
             {/* Education */}
             <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Education & Certifications</h2>
+                <h2 className="text-lg font-semibold">Education</h2>
                 <button
                   onClick={addEducation}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -1162,14 +1301,14 @@ export default function AdminPage() {
                         value={edu.degree}
                         onChange={(e) => updateEducation(edu.id, "degree", e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
-                        placeholder="Degree / Certification"
+                        placeholder="Degree"
                       />
                       <input
                         type="text"
                         value={edu.period}
                         onChange={(e) => updateEducation(edu.id, "period", e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
-                        placeholder="Period / Issuer"
+                        placeholder="Period"
                       />
                     </div>
                     <button
@@ -1180,8 +1319,123 @@ export default function AdminPage() {
                       <X className="w-4 h-4" />
                     </button>
                   </div>
+                  {/* Logo：Choose → Crop → Remove */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs text-gray-500">Logo</span>
+                    {edu.logo && (
+                      <img src={edu.logo} alt="logo" style={{ height: edu.logoSize || 28 }} className="object-contain" />
+                    )}
+                    <div className="flex items-center gap-2">
+                      <label className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+                        Choose
+                        <input type="file" accept="image/*" onChange={(e) => handleFileAndCrop(e, { type: "educationLogo", id: edu.id })} className="hidden" />
+                      </label>
+                      {edu.logo && (
+                        <>
+                          <button
+                            onClick={() => openCropEditor(edu.logo!, { type: "educationLogo", id: edu.id })}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                          >
+                            Crop
+                          </button>
+                          <button
+                            onClick={() => updateEducation(edu.id, "logo", "")}
+                            className="px-3 py-1.5 text-xs rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {edu.logo && (
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500">Size</label>
+                        <input
+                          type="range" min="16" max="64" value={edu.logoSize || 28}
+                          onChange={(e) => updateEducation(edu.id, "logoSize", Number(e.target.value))}
+                          className="w-24 h-1 accent-gray-600"
+                        />
+                        <span className="text-xs text-gray-400">{edu.logoSize || 28}px</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Awards */}
+            <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Awards</h2>
+                <button
+                  onClick={addAward}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Award
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">Upload an award image and add a link to the award page.</p>
+              {(config.aboutMe.awards || []).length === 0 ? (
+                <div className="text-center py-6 text-gray-400 text-sm">No awards yet.</div>
+              ) : (
+                (config.aboutMe.awards || []).map((award) => (
+                  <div key={award.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <input
+                        type="text"
+                        value={award.title}
+                        onChange={(e) => updateAward(award.id, "title", e.target.value)}
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400 font-medium"
+                        placeholder="Award title"
+                      />
+                      <button
+                        onClick={() => removeAward(award.id)}
+                        className="p-1 rounded hover:bg-red-500/20 text-gray-600 hover:text-red-400 transition-colors ml-2"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
+                      <input
+                        type="url"
+                        value={award.link}
+                        onChange={(e) => updateAward(award.id, "link", e.target.value)}
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-gray-400"
+                        placeholder="https://example.com/award-page"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {award.image && (
+                        <img src={award.image} alt={award.title} className="h-20 rounded object-contain border border-gray-200" />
+                      )}
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+                          Choose Image
+                          <input type="file" accept="image/*" onChange={(e) => handleFileAndCrop(e, { type: "awardImage", id: award.id })} className="hidden" />
+                        </label>
+                        {award.image && (
+                          <>
+                            <button
+                              onClick={() => openCropEditor(award.image, { type: "awardImage", id: award.id })}
+                              className="px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                              Crop
+                            </button>
+                            <button
+                              onClick={() => updateAward(award.id, "image", "")}
+                              className="px-3 py-1.5 text-xs rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
