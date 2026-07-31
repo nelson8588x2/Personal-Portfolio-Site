@@ -61,6 +61,7 @@ export default function CVPage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
 
   useEffect(() => {
+    document.title = "HSU CHIA YANG CV";
     fetch("/api/config")
       .then((res) => res.json())
       .then((data) => setConfig(data));
@@ -100,23 +101,25 @@ export default function CVPage() {
           style={{
             width: "210mm",
             minHeight: "297mm",
-            padding: "20mm 22mm",
+            maxHeight: "297mm",
+            overflow: "hidden",
+            padding: "19.5mm 22mm",
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
             color: "#1f2937",
             fontSize: "10pt",
-            lineHeight: 1.5,
+            lineHeight: 1.49,
           }}
         >
           {/* ======== Header ======== */}
           <header className="mb-8 pb-6" style={{ borderBottom: "2px solid #111827" }}>
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-5">
+              <div className="flex items-start gap-5">
                 {about.avatar && (
                   <img
                     src={about.avatar}
                     alt={about.name}
                     className="rounded-full object-cover border border-gray-200 shrink-0"
-                    style={{ width: 72, height: 72 }}
+                    style={{ width: 88, height: 88 }}
                   />
                 )}
                 <div>
@@ -154,7 +157,7 @@ export default function CVPage() {
           {about.introductions.length > 0 && (
             <section className="mb-6">
               <SectionTitle>Profile</SectionTitle>
-              <div className="text-gray-600 text-xs leading-relaxed space-y-2">
+              <div className="text-gray-600 text-xs leading-relaxed space-y-1.5">
                 {about.introductions.map((text, i) => (
                   <p key={i} className="whitespace-pre-line">{text}</p>
                 ))}
@@ -166,7 +169,7 @@ export default function CVPage() {
           {about.experiences.length > 0 && (
             <section className="mb-6">
               <SectionTitle>Experience</SectionTitle>
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {about.experiences.map((exp) => (
                   <div key={exp.id} className="flex gap-4">
                     {/* 左側時間軸 */}
@@ -179,7 +182,7 @@ export default function CVPage() {
                       <div className="w-px flex-1 bg-gray-200" />
                     </div>
                     {/* 右側內容 */}
-                    <div className="pb-1 flex-1">
+                    <div className="flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         {exp.logo && (
                           <img
@@ -191,8 +194,8 @@ export default function CVPage() {
                         )}
                         <h3 className="font-semibold text-sm text-gray-900 leading-tight">{exp.role}</h3>
                       </div>
-                      <p className="text-xs text-gray-500 mb-1">{exp.company}</p>
-                      <p className="text-xs text-gray-600 leading-relaxed">{exp.desc}</p>
+                      <p className="text-xs text-gray-500">{exp.company}</p>
+                      <p className="text-xs text-gray-600 leading-snug">{exp.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -204,7 +207,7 @@ export default function CVPage() {
           {about.education.length > 0 && (
             <section className="mb-6">
               <SectionTitle>Education</SectionTitle>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {about.education.map((edu) => (
                   <div key={edu.id} className="flex gap-4">
                     {/* 左側時間 */}
@@ -244,7 +247,7 @@ export default function CVPage() {
               <div className="grid grid-cols-3 gap-4">
                 {about.skillGroups.map((group) => (
                   <div key={group.id}>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 pb-1.5"
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 pb-1"
                       style={{ borderBottom: "1px solid #e5e7eb" }}
                     >
                       {group.category}
@@ -265,9 +268,9 @@ export default function CVPage() {
 
           {/* ======== Awards ======== */}
           {about.awards && about.awards.length > 0 && (
-            <section className="mb-6">
+            <section className="mb-5">
               <SectionTitle>Awards</SectionTitle>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {about.awards.map((award) => (
                   <div key={award.id} className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-800 shrink-0" />
@@ -311,7 +314,7 @@ export default function CVPage() {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
-      className="text-xs font-bold uppercase tracking-[0.15em] text-gray-900 mb-3 pb-1.5"
+      className="text-xs font-bold uppercase tracking-[0.15em] text-gray-900 mb-3 pb-1"
       style={{ borderBottom: "1px solid #d1d5db" }}
     >
       {children}
